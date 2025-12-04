@@ -1,0 +1,8 @@
+{
+    "imports": {
+        "std/": "https://deno.land/std@0.168.0/",
+        "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+        "smtp": "https://deno.land/x/smtp@v0.7.0/mod.ts",
+        "qrcode": "https://deno.land/x/qrcode@v2.0.0/mod.ts"
+    }
+}
