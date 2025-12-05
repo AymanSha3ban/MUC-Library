@@ -46,9 +46,9 @@ const Login = () => {
             // ✅ التعديل هنا: نستخدم دالتنا الخاصة بدلاً من دالة Supabase
             // نرسل الإيميل والكود للدالة
             const { data, error } = await supabase.functions.invoke('verify-token', {
-                body: { 
-                    email: email, 
-                    code: otp 
+                body: {
+                    email: email,
+                    code: otp
                 },
             });
 

@@ -4,6 +4,7 @@ import { qrcode } from "https://deno.land/x/qrcode/mod.ts";
 import { SmtpClient } from "https://deno.land/x/smtp/mod.ts";
 import { writeAll } from "https://deno.land/std@0.168.0/streams/write_all.ts";
 
+// حل مشكلة Deno.writeAll
 if (!(Deno as any).writeAll) {
   (Deno as any).writeAll = writeAll;
 }
@@ -21,7 +22,7 @@ serve(async (req) => {
 
   try {
     const { email } = await req.json();
-    
+
     if (!email || !email.endsWith("@muc.edu.eg")) {
       return new Response(
         JSON.stringify({ error: "Invalid email domain. Must be @muc.edu.eg" }),
@@ -31,12 +32,15 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
-    const supabase = createClient(supabaseUrl!, serviceRoleKey!);
+    
+    if (!supabaseUrl || !serviceRoleKey) throw new Error("Missing Keys");
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const token = crypto.randomUUID();
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // ✅ التصحيح هنا: حساب وقت انتهاء الصلاحية (بعد 15 دقيقة من الآن)
+    // صلاحية الكود 15 دقيقة
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     const { error: dbError } = await supabase
@@ -45,7 +49,7 @@ serve(async (req) => {
         email, 
         token, 
         code, 
-        expires_at: expiresAt // ✅ لازم نبعت الوقت ده للداتابيز
+        expires_at: expiresAt 
       });
 
     if (dbError) throw dbError;
