@@ -63,3 +63,4 @@ A full-stack digital library for MUC Engineering College, built with React (Vite
 ## Tech Stack
 - **Frontend**: React, Vite, TailwindCSS, Framer Motion, React Three Fiber.
 - **Backend**: Supabase (Auth, Database, Storage, Edge Functions).
+# MUC-Library
