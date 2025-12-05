@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
-
-import { User, Mail, Phone, Camera, Save, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import React from 'react';
+import { User, Mail, Phone, Camera, Save, Loader2, LogOut, X, Check } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../lib/canvasUtils';
 
 const Profile = () => {
-    const { user, role } = useAuth();
+    const { user, role, signOut, refreshProfile } = useAuth();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState('');
@@ -16,12 +19,20 @@ const Profile = () => {
         profile_path: '',
     });
 
+    // Cropping State
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+    const [isCropping, setIsCropping] = useState(false);
+
     useEffect(() => {
         if (user) fetchProfile();
     }, [user]);
 
     const fetchProfile = async () => {
         try {
+            console.log("Fetching profile for user:", user?.id);
             const { data, error } = await supabase
                 .from('users')
                 .select('*')
@@ -29,6 +40,8 @@ const Profile = () => {
                 .single();
 
             if (error && error.code !== 'PGRST116') throw error;
+
+            console.log("Fetched Data from DB:", data);
 
             if (data) {
                 setProfile({
@@ -44,22 +57,28 @@ const Profile = () => {
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) return;
+
         setLoading(true);
         setMessage('');
 
         try {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('users')
-                .upsert({
-                    id: user?.id,
-                    email: user?.email,
-                    role: role || 'student', // Ensure role is preserved or set
+                .update({
                     display_name: profile.display_name,
                     phone: profile.phone,
-                    updated_at: new Date(),
-                });
+                })
+                .eq('id', user.id)
+                .select();
 
             if (error) throw error;
+
+            if (data.length === 0) {
+                console.error("Update returned 0 rows! Check RLS Policy.");
+                throw new Error("Update failed quietly. RLS blocked the edit.");
+            }
+
             setMessage('Profile updated successfully');
         } catch (error: any) {
             setMessage(`Error: ${error.message}`);
@@ -68,35 +87,67 @@ const Profile = () => {
         }
     };
 
+    const onCropComplete = useCallback((_: any, croppedAreaPixels: any) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    }, []);
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
-
-        setUploading(true);
         const file = e.target.files[0];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            setImageSrc(reader.result as string);
+            setIsCropping(true);
+        });
+        reader.readAsDataURL(file);
+        // Reset input value so same file can be selected again if needed
+        e.target.value = '';
+    };
+
+    const handleSaveCrop = async () => {
+        if (!imageSrc || !croppedAreaPixels || !user) return;
 
         try {
+            setUploading(true);
+            const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+
+            if (!croppedImageBlob) {
+                throw new Error('Could not crop image');
+            }
+
+            const fileName = `${user.id}/${Date.now()}.jpg`;
+            const file = new File([croppedImageBlob], 'profile.jpg', { type: 'image/jpeg' });
+
+            console.log("Uploading file:", fileName);
             const { error: uploadError } = await supabase.storage
                 .from('profiles')
                 .upload(fileName, file);
 
             if (uploadError) throw uploadError;
 
-            // Update profile path in DB
-            const { error: dbError } = await supabase
+            console.log("Updating DB with path:", fileName);
+            const { data, error: dbError } = await supabase
                 .from('users')
-                .upsert({
-                    id: user?.id,
-                    email: user?.email,
-                    role: role || 'student',
+                .update({
                     profile_path: fileName,
-                });
+                })
+                .eq('id', user.id)
+                .select();
 
             if (dbError) throw dbError;
 
+            if (data.length === 0) {
+                console.error("❌ DB Update failed: No rows affected.");
+                throw new Error("Image uploaded but DB update failed (Row not found or RLS blocked).");
+            }
+
+            console.log("✅ DB Updated successfully:", data);
+
             setProfile(prev => ({ ...prev, profile_path: fileName }));
             setMessage('Profile picture updated');
+            await refreshProfile();
+            setIsCropping(false);
+            setImageSrc(null);
         } catch (error: any) {
             console.error('Upload error:', error);
             setMessage(`Error uploading image: ${error.message}`);
@@ -121,10 +172,19 @@ const Profile = () => {
                             <div className="relative group">
                                 <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden flex items-center justify-center">
                                     {getProfileUrl() ? (
-                                        <img src={getProfileUrl()!} alt="Profile" className="w-full h-full object-cover" />
+                                        <img
+                                            src={getProfileUrl()!}
+                                            alt="Profile"
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                console.error("Image load failed:", getProfileUrl());
+                                                e.currentTarget.style.display = 'none';
+                                            }}
+                                        />
                                     ) : (
                                         <User size={64} className="text-gray-400" />
                                     )}
+                                    {getProfileUrl() && <User size={64} className="text-gray-400 absolute -z-10" />}
                                 </div>
                                 <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-gray-900 text-white p-2 rounded-full cursor-pointer hover:bg-gray-800 transition-colors shadow-lg">
                                     <Camera size={16} />
@@ -197,8 +257,86 @@ const Profile = () => {
                             </button>
                         </form>
                     </div>
+
+                    <div className="bg-gray-50 px-8 py-4 border-t border-gray-100 flex justify-end">
+                        <button
+                            onClick={() => {
+                                Swal.fire({
+                                    title: 'Are you sure?',
+                                    text: "You will be signed out of your account.",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#3085d6',
+                                    cancelButtonColor: '#d33',
+                                    confirmButtonText: 'Yes, sign out!'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        signOut();
+                                    }
+                                });
+                            }}
+                            className="text-red-600 hover:text-red-700 font-medium flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                            <LogOut size={20} />
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            {/* Cropping Modal */}
+            {isCropping && imageSrc && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+                    <div className="bg-white rounded-2xl overflow-hidden w-full max-w-lg shadow-2xl">
+                        <div className="relative h-80 w-full bg-gray-900">
+                            <Cropper
+                                image={imageSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+                        <div className="p-6">
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Zoom</label>
+                                <input
+                                    type="range"
+                                    value={zoom}
+                                    min={1}
+                                    max={3}
+                                    step={0.1}
+                                    aria-labelledby="Zoom"
+                                    onChange={(e) => setZoom(Number(e.target.value))}
+                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => {
+                                        setIsCropping(false);
+                                        setImageSrc(null);
+                                    }}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium flex items-center"
+                                >
+                                    <X size={18} className="mr-2" />
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveCrop}
+                                    disabled={uploading}
+                                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium flex items-center disabled:opacity-70"
+                                >
+                                    {uploading ? <Loader2 className="animate-spin mr-2" size={18} /> : <Check size={18} className="mr-2" />}
+                                    Save & Upload
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

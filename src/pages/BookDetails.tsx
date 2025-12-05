@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Star, BookOpen, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
 
 interface Book {
     id: string;
@@ -25,10 +26,12 @@ const BookDetails = () => {
     const [book, setBook] = useState<Book | null>(null);
     const [loading, setLoading] = useState(true);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+    const [userRating, setUserRating] = useState<number>(0);
+    const [hoverRating, setHoverRating] = useState<number>(0);
 
     useEffect(() => {
         if (id) fetchBook();
-    }, [id]);
+    }, [id, user]);
 
     const fetchBook = async () => {
         setLoading(true);
@@ -44,18 +47,12 @@ const BookDetails = () => {
         } else {
             setBook(data);
             if (data.pdf_path) {
-                // Get signed URL for PDF if it's private, or public URL if public bucket
-                // 'books-pdfs' is public in my setup, so getPublicUrl
                 const { data: { publicUrl } } = supabase.storage
                     .from('books-pdfs')
                     .getPublicUrl(data.pdf_path);
                 setPdfUrl(publicUrl);
 
-                // Increment read count
-                // Only if student? Or anyone?
                 if (user) {
-                    supabase.rpc('increment_read_count', { book_id: id }); // Need to implement RPC or just update
-                    // Simple update for now
                     supabase
                         .from('books')
                         .update({ read_count: (data.read_count || 0) + 1 })
@@ -65,8 +62,65 @@ const BookDetails = () => {
                         });
                 }
             }
+
+            // Fetch user rating
+            if (user) {
+                const { data: ratingData } = await supabase
+                    .from('ratings')
+                    .select('rating')
+                    .eq('book_id', id)
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (ratingData) {
+                    setUserRating(ratingData.rating);
+                }
+            }
         }
         setLoading(false);
+    };
+
+    const handleRate = async (rating: number) => {
+        if (!user) {
+            Swal.fire('Error', 'You must be logged in to rate books.', 'error');
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('ratings')
+                .upsert({
+                    book_id: id,
+                    user_id: user.id,
+                    rating: rating
+                }, { onConflict: 'user_id,book_id' });
+
+            if (error) throw error;
+
+            setUserRating(rating);
+
+            // Refresh book data to get updated average
+            const { data: updatedBook } = await supabase
+                .from('books')
+                .select('rating')
+                .eq('id', id)
+                .single();
+
+            if (updatedBook) {
+                setBook(prev => prev ? { ...prev, rating: updatedBook.rating } : null);
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Rated!',
+                text: `You rated this book ${rating} stars.`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (error: any) {
+            console.error('Error rating book:', error);
+            Swal.fire('Error', error.message, 'error');
+        }
     };
 
     const getCoverUrl = (path: string) => {
@@ -124,8 +178,49 @@ const BookDetails = () => {
                                 )}
                                 {role === 'admin' && (
                                     <div className="flex gap-2">
-                                        <button className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Edit</button>
-                                        <button className="flex-1 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50">Delete</button>
+                                        <button
+                                            onClick={() => navigate('/admin', { state: { editBook: book } })}
+                                            className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                const result = await Swal.fire({
+                                                    title: 'Are you sure?',
+                                                    text: "You won't be able to revert this!",
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#d33',
+                                                    cancelButtonColor: '#3085d6',
+                                                    confirmButtonText: 'Yes, delete it!'
+                                                });
+
+                                                if (result.isConfirmed) {
+                                                    try {
+                                                        const { error } = await supabase.from('books').delete().eq('id', id);
+                                                        if (error) throw error;
+
+                                                        await Swal.fire(
+                                                            'Deleted!',
+                                                            'The book has been deleted.',
+                                                            'success'
+                                                        );
+                                                        navigate('/'); // Return to library/home
+                                                    } catch (err: any) {
+                                                        console.error('Error deleting book:', err);
+                                                        Swal.fire(
+                                                            'Error!',
+                                                            `Error deleting book: ${err.message}`,
+                                                            'error'
+                                                        );
+                                                    }
+                                                }
+                                            }}
+                                            className="flex-1 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
+                                        >
+                                            Delete
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -153,6 +248,33 @@ const BookDetails = () => {
                                 <div className="flex items-center">
                                     <Clock size={20} className="mr-2" />
                                     <span>Added {new Date(book.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+
+                            {/* Rating Section */}
+                            <div className="mb-8 p-6 bg-gray-50 rounded-xl">
+                                <h3 className="text-lg font-bold text-gray-900 mb-3">Rate this book</h3>
+                                <div className="flex items-center space-x-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            onMouseEnter={() => setHoverRating(star)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                            onClick={() => handleRate(star)}
+                                            className="focus:outline-none transition-transform hover:scale-110"
+                                        >
+                                            <Star
+                                                size={32}
+                                                className={`${star <= (hoverRating || userRating)
+                                                        ? 'text-yellow-400 fill-current'
+                                                        : 'text-gray-300'
+                                                    } transition-colors`}
+                                            />
+                                        </button>
+                                    ))}
+                                    <span className="ml-3 text-sm text-gray-500">
+                                        {userRating > 0 ? `Your rating: ${userRating}` : 'Click to rate'}
+                                    </span>
                                 </div>
                             </div>
 

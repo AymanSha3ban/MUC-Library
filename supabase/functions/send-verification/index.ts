@@ -1,49 +1,60 @@
-import { serve } from "std/http/server.ts";
-import { createClient } from "@supabase/supabase-js";
-import { SmtpClient } from "smtp";
-import { qrcode } from "qrcode";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.35.0";
+import { qrcode } from "https://deno.land/x/qrcode/mod.ts";
+import { SmtpClient } from "https://deno.land/x/smtp/mod.ts";
+import { writeAll } from "https://deno.land/std@0.168.0/streams/write_all.ts";
+
+if (!(Deno as any).writeAll) {
+  (Deno as any).writeAll = writeAll;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const { email } = await req.json();
-
+    
     if (!email || !email.endsWith("@muc.edu.eg")) {
       return new Response(
-        JSON.stringify({ error: "Invalid email domain" }),
+        JSON.stringify({ error: "Invalid email domain. Must be @muc.edu.eg" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
+    const supabase = createClient(supabaseUrl!, serviceRoleKey!);
 
-    // Generate token and code
     const token = crypto.randomUUID();
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // ✅ التصحيح هنا: حساب وقت انتهاء الصلاحية (بعد 15 دقيقة من الآن)
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    // Store in database
     const { error: dbError } = await supabase
       .from("verifications")
-      .insert({ email, token, code });
+      .insert({ 
+        email, 
+        token, 
+        code, 
+        expires_at: expiresAt // ✅ لازم نبعت الوقت ده للداتابيز
+      });
 
     if (dbError) throw dbError;
 
-    // Generate QR Code
-    const verifyUrl = `${Deno.env.get("FRONTEND_URL")}/verify?token=${token}`;
-    const qrImage = await qrcode(verifyUrl); // Base64 data URL
+    const frontendUrl = Deno.env.get("FRONTEND_URL") ?? "http://localhost:5173";
+    const verifyUrl = `${frontendUrl}/verify?token=${token}`;
+    const qrImage = await qrcode(verifyUrl);
 
-    // Send Email
+    // إرسال الإيميل
     const client = new SmtpClient();
     await client.connectTLS({
       hostname: Deno.env.get("SMTP_HOST") ?? "smtp.gmail.com",
@@ -55,31 +66,28 @@ serve(async (req) => {
     await client.send({
       from: Deno.env.get("FROM_EMAIL") ?? "noreply@muc.edu.eg",
       to: email,
-      subject: "MUC Library Verification",
-      content: `
-        <h1>Verify your email</h1>
-        <p>Your verification code is: <strong>${code}</strong></p>
-        <p>Or scan this QR code:</p>
-        <img src="${qrImage}" alt="QR Code" />
-        <p><a href="${verifyUrl}">Click here to verify</a></p>
-      `,
+      subject: "MUC Library Verification Code",
       html: `
-        <h1>Verify your email</h1>
-        <p>Your verification code is: <strong>${code}</strong></p>
-        <p>Or scan this QR code:</p>
-        <img src="${qrImage}" alt="QR Code" />
-        <p><a href="${verifyUrl}">Click here to verify</a></p>
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+          <h2>Your Verification Code</h2>
+          <h1 style="color: #2563eb; font-size: 32px; letter-spacing: 5px;">${code}</h1>
+          <p>This code will expire in 15 minutes.</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+          <img src="${qrImage}" alt="QR Code" width="200" height="200" />
+          <p><a href="${verifyUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Login</a></p>
+        </div>
       `,
     });
 
     await client.close();
 
     return new Response(
-      JSON.stringify({ message: "Verification email sent" }),
+      JSON.stringify({ message: "Sent" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
 
   } catch (error) {
+    console.error("Error:", error.message);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }

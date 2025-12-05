@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, BookOpen, Home as HomeIcon, Shield } from 'lucide-react';
+import { Menu, X, User, BookOpen, Home as HomeIcon, Shield, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
+import Swal from 'sweetalert2';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
-    const { user, role } = useAuth();
+    const { user, role, signOut, profilePath } = useAuth();
 
     const links = [
         { name: 'Home', path: '/', icon: HomeIcon },
@@ -56,8 +58,15 @@ const Navbar = () => {
                             <div className="relative group">
                                 <Link to="/profile" className="flex items-center space-x-2 text-gray-600 hover:text-primary-600">
                                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border border-gray-200">
-                                        {/* Placeholder or user image */}
-                                        <User size={20} />
+                                        {profilePath ? (
+                                            <img
+                                                src={supabase.storage.from('profiles').getPublicUrl(profilePath).data.publicUrl}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <User size={20} />
+                                        )}
                                     </div>
                                 </Link>
                                 {/* Dropdown for logout could go here */}
@@ -109,14 +118,38 @@ const Navbar = () => {
                                 </Link>
                             ))}
                             {user ? (
-                                <Link
-                                    to="/profile"
-                                    onClick={() => setIsOpen(false)}
-                                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-primary-600"
-                                >
-                                    <User size={20} />
-                                    <span>Profile</span>
-                                </Link>
+                                <>
+                                    <Link
+                                        to="/profile"
+                                        onClick={() => setIsOpen(false)}
+                                        className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-primary-600"
+                                    >
+                                        <User size={20} />
+                                        <span>Profile</span>
+                                    </Link>
+                                    <button
+                                        onClick={() => {
+                                            setIsOpen(false);
+                                            Swal.fire({
+                                                title: 'Sign out?',
+                                                text: "Are you sure you want to sign out?",
+                                                icon: 'warning',
+                                                showCancelButton: true,
+                                                confirmButtonColor: '#3085d6',
+                                                cancelButtonColor: '#d33',
+                                                confirmButtonText: 'Yes, sign out!'
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    signOut();
+                                                }
+                                            });
+                                        }}
+                                        className="flex w-full items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+                                    >
+                                        <LogOut size={20} />
+                                        <span>Sign Out</span>
+                                    </button>
+                                </>
                             ) : (
                                 <Link
                                     to="/login"
