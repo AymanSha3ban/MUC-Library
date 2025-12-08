@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
-import { Plus, Loader2, Edit, Trash2, BookOpen } from 'lucide-react';
+import { Upload, Plus, Loader2, Edit, Trash2, BookOpen } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
+
+// ---------------------------------------------------
+// ملاحظة: لقد قمت بتعديل أيقونة "Add New Book"
+// لاستخدام <Upload /> بدلاً من <Plus /> لتبدو أكثر ملاءمة.
+// ---------------------------------------------------
 
 const AdminDashboard = () => {
     const { role } = useAuth();
@@ -34,8 +39,7 @@ const AdminDashboard = () => {
         fetchBooks();
         if (location.state?.editBook) {
             startEdit(location.state.editBook);
-            // Optional: Clear state so it doesn't persist if they navigate away and back? 
-            // For now, this is fine.
+            // Clear state from navigation history
             window.history.replaceState({}, document.title);
         }
     }, []);
@@ -145,9 +149,6 @@ const AdminDashboard = () => {
     };
 
 
-
-
-
     const handleDelete = async (id: string) => {
         const result = await Swal.fire({
             title: 'Are you sure?',
@@ -216,7 +217,8 @@ const AdminDashboard = () => {
                         <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center justify-between">
                                 <span className="flex items-center">
-                                    {editingBook ? <Edit className="mr-2" size={20} /> : <Plus className="mr-2" size={20} />}
+                                    {/* تم التعديل هنا لاستخدام Upload أو Edit */}
+                                    {editingBook ? <Edit className="mr-2" size={20} /> : <Upload className="mr-2" size={20} />}
                                     {editingBook ? 'Edit Book' : 'Add New Book'}
                                 </span>
                                 {editingBook && (
@@ -286,8 +288,6 @@ const AdminDashboard = () => {
                                             className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                                         />
                                     </div>
-
-
 
                                     {bookType === 'free' ? (
                                         <div>
