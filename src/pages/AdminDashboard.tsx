@@ -22,6 +22,8 @@ const AdminDashboard = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('computer');
+    const [bookType, setBookType] = useState<'free' | 'paid'>('free');
+    const [externalLink, setExternalLink] = useState('');
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
@@ -52,9 +54,19 @@ const AdminDashboard = () => {
         e.preventDefault();
 
         // Validation: For new books, files are required. For edit, they are optional.
-        if (!editingBook && (!coverFile || !pdfFile)) {
-            setMessage('Please select both cover and PDF files.');
-            return;
+        if (!editingBook) {
+            if (!coverFile) {
+                setMessage('Please select a cover image.');
+                return;
+            }
+            if (bookType === 'free' && !pdfFile) {
+                setMessage('Please select a PDF file for free books.');
+                return;
+            }
+            if (bookType === 'paid' && !externalLink) {
+                setMessage('Please provide an external link for paid books.');
+                return;
+            }
         }
 
         setLoading(true);
@@ -92,8 +104,10 @@ const AdminDashboard = () => {
                 title,
                 description,
                 category,
+                type: bookType,
+                external_link: bookType === 'paid' ? externalLink : null,
                 cover_path: coverPath,
-                pdf_path: pdfPath,
+                pdf_path: bookType === 'free' ? pdfPath : null,
             };
 
             if (editingBook) {
@@ -172,6 +186,8 @@ const AdminDashboard = () => {
         setTitle(book.title);
         setDescription(book.description);
         setCategory(book.category);
+        setBookType(book.type || 'free');
+        setExternalLink(book.external_link || '');
         setCoverFile(null);
         setPdfFile(null);
         setMessage('');
@@ -183,6 +199,8 @@ const AdminDashboard = () => {
         setTitle('');
         setDescription('');
         setCategory('computer');
+        setBookType('free');
+        setExternalLink('');
         setCoverFile(null);
         setPdfFile(null);
     };
@@ -244,6 +262,18 @@ const AdminDashboard = () => {
                                     </select>
                                 </div>
 
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Book Type</label>
+                                    <select
+                                        value={bookType}
+                                        onChange={(e) => setBookType(e.target.value as 'free' | 'paid')}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                    >
+                                        <option value="free">Free (PDF)</option>
+                                        <option value="paid">Paid (External Link)</option>
+                                    </select>
+                                </div>
+
                                 <div className="space-y-3">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -257,17 +287,33 @@ const AdminDashboard = () => {
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            {editingBook ? 'Update PDF (Optional)' : 'Book PDF'}
-                                        </label>
-                                        <input
-                                            type="file"
-                                            accept=".pdf"
-                                            onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
-                                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                                        />
-                                    </div>
+
+
+                                    {bookType === 'free' ? (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {editingBook ? 'Update PDF (Optional)' : 'Book PDF'}
+                                            </label>
+                                            <input
+                                                type="file"
+                                                accept=".pdf"
+                                                onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">External Link</label>
+                                            <input
+                                                type="url"
+                                                value={externalLink}
+                                                onChange={(e) => setExternalLink(e.target.value)}
+                                                placeholder="https://example.com/book"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                                required={bookType === 'paid'}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {message && (

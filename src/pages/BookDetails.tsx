@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Star, BookOpen, Clock } from 'lucide-react';
@@ -13,6 +13,8 @@ interface Book {
     cover_path: string;
     pdf_path: string;
     category: string;
+    type: 'free' | 'paid';
+    external_link?: string;
     rating: number;
     read_count: number;
     created_at: string;
@@ -29,8 +31,14 @@ const BookDetails = () => {
     const [userRating, setUserRating] = useState<number>(0);
     const [hoverRating, setHoverRating] = useState<number>(0);
 
+    const incrementedRef = useRef(false);
+
     useEffect(() => {
         if (id) fetchBook();
+        // Reset ref when id changes
+        return () => {
+            incrementedRef.current = false;
+        };
     }, [id, user]);
 
     const fetchBook = async () => {
@@ -52,11 +60,10 @@ const BookDetails = () => {
                     .getPublicUrl(data.pdf_path);
                 setPdfUrl(publicUrl);
 
-                if (user) {
+                if (user && !incrementedRef.current) {
+                    incrementedRef.current = true;
                     supabase
-                        .from('books')
-                        .update({ read_count: (data.read_count || 0) + 1 })
-                        .eq('id', id)
+                        .rpc('increment_read_count', { book_id: id })
                         .then(({ error }) => {
                             if (error) console.error('Error incrementing read count', error);
                         });
@@ -166,14 +173,26 @@ const BookDetails = () => {
                             </motion.div>
 
                             <div className="w-full max-w-sm space-y-4">
-                                {pdfUrl && (
+                                {book.type === 'free' && pdfUrl && (
                                     <a
                                         href={pdfUrl}
                                         download
-                                        className="flex items-center justify-center w-full py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700 transition-colors"
+                                        className="flex items-center justify-center w-full py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
                                     >
                                         <Download size={20} className="mr-2" />
                                         Download PDF
+                                    </a>
+                                )}
+
+                                {book.type === 'paid' && book.external_link && (
+                                    <a
+                                        href={book.external_link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                                    >
+                                        <BookOpen size={20} className="mr-2" />
+                                        Go to Source
                                     </a>
                                 )}
                                 {role === 'admin' && (
@@ -232,6 +251,10 @@ const BookDetails = () => {
                                 <span className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium uppercase tracking-wide">
                                     {book.category}
                                 </span>
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium uppercase tracking-wide ${book.type === 'free' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                                    }`}>
+                                    {book.type}
+                                </span>
                                 <div className="flex items-center text-yellow-400">
                                     <Star size={18} fill="currentColor" />
                                     <span className="ml-1 text-gray-900 font-bold">{book.rating}</span>
@@ -266,8 +289,8 @@ const BookDetails = () => {
                                             <Star
                                                 size={32}
                                                 className={`${star <= (hoverRating || userRating)
-                                                        ? 'text-yellow-400 fill-current'
-                                                        : 'text-gray-300'
+                                                    ? 'text-yellow-400 fill-current'
+                                                    : 'text-gray-300'
                                                     } transition-colors`}
                                             />
                                         </button>
@@ -286,7 +309,7 @@ const BookDetails = () => {
                             </div>
 
                             {/* PDF Viewer */}
-                            {pdfUrl && (
+                            {book.type === 'free' && pdfUrl && (
                                 <div className="mt-8">
                                     <h3 className="text-xl font-bold text-gray-900 mb-4">Preview</h3>
                                     <div className="w-full h-[600px] bg-gray-100 rounded-xl overflow-hidden border border-gray-200">

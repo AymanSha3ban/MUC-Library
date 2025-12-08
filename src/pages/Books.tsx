@@ -10,6 +10,7 @@ interface Book {
     description: string;
     cover_path: string;
     category: string;
+    type: 'free' | 'paid';
     rating: number;
     read_count: number;
 }
@@ -22,10 +23,11 @@ const Books = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
+    const [selectedType, setSelectedType] = useState<'all' | 'free' | 'paid'>('all');
 
     useEffect(() => {
         fetchBooks();
-    }, [selectedCategory]);
+    }, [selectedCategory, selectedType]);
 
     const fetchBooks = async () => {
         setLoading(true);
@@ -33,6 +35,10 @@ const Books = () => {
 
         if (selectedCategory !== 'all') {
             query = query.eq('category', selectedCategory);
+        }
+
+        if (selectedType !== 'all') {
+            query = query.eq('type', selectedType);
         }
 
         const { data, error } = await query;
@@ -73,6 +79,22 @@ const Books = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full sm:w-64"
                             />
+                        </div>
+
+                        {/* Type Filter */}
+                        <div className="flex bg-white rounded-lg p-1 border border-gray-200">
+                            {(['all', 'free', 'paid'] as const).map((type) => (
+                                <button
+                                    key={type}
+                                    onClick={() => setSelectedType(type)}
+                                    className={`px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${selectedType === type
+                                        ? 'bg-primary-100 text-primary-700 shadow-sm'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {type}
+                                </button>
+                            ))}
                         </div>
 
                         <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0">
@@ -127,6 +149,10 @@ const Books = () => {
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-xs font-semibold text-primary-600 uppercase tracking-wider">
                                             {book.category}
+                                        </span>
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${book.type === 'free' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                            }`}>
+                                            {book.type || 'free'}
                                         </span>
                                         <div className="flex items-center text-yellow-400 text-xs">
                                             <Star size={14} fill="currentColor" />

@@ -36,7 +36,7 @@ const Home = () => {
 
                 <div className="absolute inset-0 z-0 opacity-30">
                     {/* Placeholder for university image */}
-                    <div className="w-full h-full bg-[url('./public/bg2.png')] bg-cover bg-center" />
+                    <div className="w-full h-full bg-[url('/bg2.png')] bg-cover bg-center" />
                 </div>
 
                 <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
