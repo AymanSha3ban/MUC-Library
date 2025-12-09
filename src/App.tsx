@@ -11,6 +11,8 @@ import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
   const { loading } = useAuth();
 
@@ -24,6 +26,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ScrollToTop />
       <Navbar />
       <Routes>
         <Route path="/" element={

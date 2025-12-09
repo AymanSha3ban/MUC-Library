@@ -56,7 +56,7 @@ serve(async (req) => {
 
     const frontendUrl = Deno.env.get("FRONTEND_URL") ?? "http://localhost:5173";
     const verifyUrl = `${frontendUrl}/verify?token=${token}`;
-    const qrImage = await qrcode(verifyUrl);
+    const qrImage = await qrcode(code);
 
     // إرسال الإيميل
     const client = new SmtpClient();
