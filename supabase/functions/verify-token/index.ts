@@ -65,11 +65,21 @@ serve(async (req) => {
     // حرق الكود
     await supabase.from("verifications").update({ used: true }).eq("id", record.id);
 
-    const userEmail = record.email;
-    const role = userEmail === "ayman.23120261@muc.edu.eg" ? "admin" : "student";
+    // supabase/functions/verify-token/index.ts
 
-    // تحديث جدول المستخدمين
-    await supabase.from("users").upsert({ email: userEmail, role }, { onConflict: "email" });
+const userEmail = record.email;
+
+// قائمة إيميلات المشرفين المعتمدين (يمكنك إضافة أي إيميل جامعي هنا)
+const ADMIN_EMAILS = [
+    "ayman.23120261@muc.edu.eg", 
+    "yasmin-abdelnaby@muc.edu.eg", 
+];
+
+// يتم تحديد الدور بناءً على ما إذا كان الإيميل ضمن القائمة
+const role = ADMIN_EMAILS.includes(userEmail) ? "admin" : "student";
+
+// تحديث جدول المستخدمين
+await supabase.from("users").upsert({ email: userEmail, role }, { onConflict: "email" });
 
     // إنشاء المستخدم في Auth (لو مش موجود)
     try {

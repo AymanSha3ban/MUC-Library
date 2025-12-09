@@ -4,14 +4,14 @@ import { Users } from 'lucide-react';
 
 const developers = [
     { name: 'Ayman Shaaban', image: '/Ayman.png' },
-    { name: 'Omran Amr', image: '/Omran.png' },
+    { name: 'Omran Amr', image: '/Omran0.png' },
     { name: 'Karim reda', image: '/Karim.png' },
-    { name: 'Abdo Nasr', image: '/Abdohatem.png' },
-    { name: 'Abdo Hatem', image: '/Abdonasr.png' },
+    { name: 'Abdo Nasr', image: '/Abdonaser.png' },
+    { name: 'Abdo Hatem', image: '/Abdohatem.png' },
     { name: 'Abdo Elmasry', image: '/Abdomasry.png' },
     { name: 'Sharqawy', image: '/Sharqawy.png' },
     { name: 'Yousef Elbadre', image: '/Yousefbadre.png' },
-    { name: 'Yousef', image: '/Yousef.png' },
+    { name: 'Yousef Mohamed', image: '/Yousef.png' },
     { name: 'Mohammed Sayed', image: '/Mohamed.png' },
 ];
 
