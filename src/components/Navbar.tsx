@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, BookOpen, Home as HomeIcon, Shield, LogOut } from 'lucide-react';
+import { Menu, X, User, BookOpen, Home as HomeIcon, Shield, LogOut, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import Swal from 'sweetalert2';
@@ -14,6 +14,7 @@ const Navbar = () => {
     const links = [
         { name: 'Home', path: '/', icon: HomeIcon },
         { name: 'Books', path: '/books', icon: BookOpen },
+        { name: 'Developers', path: '/about-developers', icon: Users },
     ];
 
     if (role === 'admin') {

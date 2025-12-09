@@ -8,6 +8,7 @@ import Books from './pages/Books';
 import BookDetails from './pages/BookDetails';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
+import AboutDevelopers from './pages/AboutDevelopers';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
@@ -54,6 +55,11 @@ function App() {
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/about-developers" element={
+          <ProtectedRoute>
+            <AboutDevelopers />
           </ProtectedRoute>
         } />
       </Routes>

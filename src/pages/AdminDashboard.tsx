@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react';
-
 import { Upload, Loader2, Edit, Trash2, BookOpen } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
-
-// ---------------------------------------------------
-// ملاحظة: لقد قمت بتعديل أيقونة "Add New Book"
-// لاستخدام <Upload /> بدلاً من <Plus /> لتبدو أكثر ملاءمة.
-// ---------------------------------------------------
 
 const AdminDashboard = () => {
     const { role } = useAuth();
@@ -214,10 +208,9 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Form Section */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-                            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center justify-between">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24 flex flex-col h-[calc(100vh-120px)]">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center justify-between flex-shrink-0">
                                 <span className="flex items-center">
-                                    {/* تم التعديل هنا لاستخدام Upload أو Edit */}
                                     {editingBook ? <Edit className="mr-2" size={20} /> : <Upload className="mr-2" size={20} />}
                                     {editingBook ? 'Edit Book' : 'Add New Book'}
                                 </span>
@@ -228,104 +221,106 @@ const AdminDashboard = () => {
                                 )}
                             </h2>
 
-                            <form onSubmit={handleUpload} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
-                                    <input
-                                        type="text"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                    <textarea
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                    <select
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                    >
-                                        <option value="computer">Computer Engineering</option>
-                                        <option value="robotics">Robotics</option>
-                                        <option value="electrical">Electrical Engineering</option>
-                                        <option value="architecture">Architecture</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Book Type</label>
-                                    <select
-                                        value={bookType}
-                                        onChange={(e) => setBookType(e.target.value as 'free' | 'paid')}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                    >
-                                        <option value="free">Free (PDF)</option>
-                                        <option value="paid">Paid (External Link)</option>
-                                    </select>
-                                </div>
-
-                                <div className="space-y-3">
+                            <form onSubmit={handleUpload} className="flex flex-col h-full overflow-hidden">
+                                <div className="overflow-y-auto pr-2 flex-1 space-y-4 mb-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            {editingBook ? 'Update Cover (Optional)' : 'Cover Image'}
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
                                         <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-                                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                                            type="text"
+                                            value={title}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                            required
                                         />
                                     </div>
 
-                                    {bookType === 'free' ? (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <textarea
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                            rows={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                        <select
+                                            value={category}
+                                            onChange={(e) => setCategory(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                        >
+                                            <option value="computer">Computer Engineering</option>
+                                            <option value="robotics">Robotics</option>
+                                            <option value="electrical">Electrical Engineering</option>
+                                            <option value="architecture">Architecture</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Book Type</label>
+                                        <select
+                                            value={bookType}
+                                            onChange={(e) => setBookType(e.target.value as 'free' | 'paid')}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                        >
+                                            <option value="free">Free (PDF)</option>
+                                            <option value="paid">Paid (External Link)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-3">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                {editingBook ? 'Update PDF (Optional)' : 'Book PDF'}
+                                                {editingBook ? 'Update Cover (Optional)' : 'Cover Image'}
                                             </label>
                                             <input
                                                 type="file"
-                                                accept=".pdf"
-                                                onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                                                accept="image/*"
+                                                onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
                                                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                                             />
                                         </div>
-                                    ) : (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">External Link</label>
-                                            <input
-                                                type="url"
-                                                value={externalLink}
-                                                onChange={(e) => setExternalLink(e.target.value)}
-                                                placeholder="https://example.com/book"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                                required={bookType === 'paid'}
-                                            />
+
+                                        {bookType === 'free' ? (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    {editingBook ? 'Update PDF (Optional)' : 'Book PDF'}
+                                                </label>
+                                                <input
+                                                    type="file"
+                                                    accept=".pdf"
+                                                    onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">External Link</label>
+                                                <input
+                                                    type="url"
+                                                    value={externalLink}
+                                                    onChange={(e) => setExternalLink(e.target.value)}
+                                                    placeholder="https://example.com/book"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                                    required={bookType === 'paid'}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {message && (
+                                        <div className={`p-3 rounded-lg text-sm ${message.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                                            {message}
                                         </div>
                                     )}
                                 </div>
 
-                                {message && (
-                                    <div className={`p-3 rounded-lg text-sm ${message.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                                        {message}
-                                    </div>
-                                )}
-
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-primary-600 text-white py-2 rounded-lg font-bold hover:bg-primary-700 transition-colors flex items-center justify-center disabled:opacity-70"
+                                    className="w-full bg-primary-600 text-white py-2 rounded-lg font-bold hover:bg-primary-700 transition-colors flex items-center justify-center disabled:opacity-70 mt-auto flex-shrink-0"
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={20} /> : (editingBook ? 'Update Book' : 'Add Book')}
                                 </button>
