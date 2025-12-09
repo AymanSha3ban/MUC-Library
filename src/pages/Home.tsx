@@ -4,6 +4,7 @@ import { OrbitControls, Float } from '@react-three/drei';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Cpu, Zap, PenTool, ArrowRight } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const Book3D = () => {
     return (
@@ -30,6 +31,11 @@ const Home = () => {
 
     return (
         <div className="min-h-screen pt-16">
+            <SEO
+                title="Home"
+                description="Access thousands of resources for Computer, Robotics, Electrical, and Architecture engineering at MUC Library."
+                keywords="MUC, Library, Engineering, Computer, Robotics, Electrical, Architecture"
+            />
             {/* Hero Section */}
             <section className="relative h-[600px] bg-gray-900 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-transparent z-10" />

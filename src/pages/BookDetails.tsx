@@ -5,6 +5,7 @@ import { ArrowLeft, Download, Star, BookOpen, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
+import SEO from '../components/SEO';
 
 interface Book {
     id: string;
@@ -147,6 +148,12 @@ const BookDetails = () => {
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+            <SEO
+                title={book.title}
+                description={book.description}
+                image={getCoverUrl(book.cover_path)}
+                type="book"
+            />
             <div className="max-w-7xl mx-auto">
                 <button
                     onClick={() => navigate(-1)}
