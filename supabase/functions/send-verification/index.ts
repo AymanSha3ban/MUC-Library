@@ -68,7 +68,7 @@ serve(async (req) => {
     });
 
     await client.send({
-      from: Deno.env.get("FROM_EMAIL") ?? "noreply@muc.edu.eg",
+      from:"muclibrary@muc.edu.eg",
       to: email,
       subject: "MUC Library Verification Code",
       html: `
@@ -78,7 +78,6 @@ serve(async (req) => {
           <p>This code will expire in 15 minutes.</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
           <img src="${qrImage}" alt="QR Code" width="200" height="200" />
-          <p><a href="${verifyUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Login</a></p>
         </div>
       `,
     });
