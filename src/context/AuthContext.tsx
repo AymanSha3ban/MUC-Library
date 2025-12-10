@@ -61,8 +61,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const { data, error } = await supabase
                 .from('users')
                 .select('role, profile_path')
-                .eq('email', email)
-                .single();
+                .ilike('email', email)
+                .maybeSingle();
 
             if (error || !data) {
                 console.error('Error fetching user profile:', error);
