@@ -72,7 +72,9 @@ const userEmail = record.email;
 // قائمة إيميلات المشرفين المعتمدين (يمكنك إضافة أي إيميل جامعي هنا)
 const ADMIN_EMAILS = [
     "ayman.23120261@muc.edu.eg", 
-    "yasmin-abdelnaby@muc.edu.eg", 
+    "yasmin-abdelnaby@muc.edu.eg",
+    "Yasmin-abdelnaby@muc.edu.eg", 
+    "karim.23120276@muc.edu.eg"
 ];
 
 // يتم تحديد الدور بناءً على ما إذا كان الإيميل ضمن القائمة
