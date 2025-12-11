@@ -88,6 +88,57 @@ const Books = () => {
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div className="max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                    <h1 className="text-3xl font-bold text-gray-900">Library Collection</h1>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <input
+                                type="text"
+                                placeholder="Search books..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full sm:w-64"
+                            />
+                        </div>
+
+                        {/* Type Filter */}
+                        <div className="flex bg-white rounded-lg p-1 border border-gray-200">
+                            {(['all', 'free', 'paid'] as const).map((type) => (
+                                <button
+                                    key={type}
+                                    onClick={() => setSelectedType(type)}
+                                    className={`px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${selectedType === type
+                                        ? 'bg-primary-100 text-primary-700 shadow-sm'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {type}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0">
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => {
+                                        setSelectedCategory(cat);
+                                        setSearchParams(cat === 'all' ? {} : { category: cat });
+                                    }}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === cat
+                                        ? 'bg-primary-600 text-white'
+                                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                        }`}
+                                >
+                                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Top Rated Section */}
                 {!loading && topRatedBooks.length > 0 && selectedType === 'all' && !searchTerm && (
                     <div className="mb-12">
@@ -146,57 +197,6 @@ const Books = () => {
                         </div>
                     </div>
                 )}
-
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                    <h1 className="text-3xl font-bold text-gray-900">Library Collection</h1>
-
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="text"
-                                placeholder="Search books..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full sm:w-64"
-                            />
-                        </div>
-
-                        {/* Type Filter */}
-                        <div className="flex bg-white rounded-lg p-1 border border-gray-200">
-                            {(['all', 'free', 'paid'] as const).map((type) => (
-                                <button
-                                    key={type}
-                                    onClick={() => setSelectedType(type)}
-                                    className={`px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${selectedType === type
-                                        ? 'bg-primary-100 text-primary-700 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {type}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => {
-                                        setSelectedCategory(cat);
-                                        setSearchParams(cat === 'all' ? {} : { category: cat });
-                                    }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === cat
-                                        ? 'bg-primary-600 text-white'
-                                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                                        }`}
-                                >
-                                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
 
                 {loading ? (
                     <div className="flex justify-center py-20">
