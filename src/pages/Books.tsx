@@ -32,11 +32,17 @@ const Books = () => {
     }, [selectedCategory, selectedType]);
 
     const fetchTopRatedBooks = async () => {
-        const { data, error } = await supabase
+        let query = supabase
             .from('books')
             .select('*')
             .order('rating', { ascending: false })
             .limit(4);
+
+        if (selectedCategory !== 'all') {
+            query = query.eq('category', selectedCategory);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('Error fetching top rated books:', error);
@@ -83,11 +89,15 @@ const Books = () => {
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div className="max-w-7xl mx-auto">
                 {/* Top Rated Section */}
-                {!loading && topRatedBooks.length > 0 && selectedCategory === 'all' && selectedType === 'all' && !searchTerm && (
+                {!loading && topRatedBooks.length > 0 && selectedType === 'all' && !searchTerm && (
                     <div className="mb-12">
                         <div className="flex items-center mb-6">
                             <Star className="text-yellow-400 mr-2" size={28} fill="currentColor" />
-                            <h2 className="text-2xl font-bold text-gray-900">Top Rated Books</h2>
+                            <h2 className="text-2xl font-bold text-gray-900">
+                                {selectedCategory === 'all'
+                                    ? 'Top Rated Books'
+                                    : `Top Rated ${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Books`}
+                            </h2>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {topRatedBooks.map((book) => (
