@@ -20,6 +20,7 @@ const Books = () => {
     const categoryParam = searchParams.get('category');
 
     const [books, setBooks] = useState<Book[]>([]);
+    const [topRatedBooks, setTopRatedBooks] = useState<Book[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
@@ -27,7 +28,22 @@ const Books = () => {
 
     useEffect(() => {
         fetchBooks();
+        fetchTopRatedBooks();
     }, [selectedCategory, selectedType]);
+
+    const fetchTopRatedBooks = async () => {
+        const { data, error } = await supabase
+            .from('books')
+            .select('*')
+            .order('rating', { ascending: false })
+            .limit(4);
+
+        if (error) {
+            console.error('Error fetching top rated books:', error);
+        } else {
+            setTopRatedBooks(data || []);
+        }
+    };
 
     const fetchBooks = async () => {
         setLoading(true);
@@ -66,6 +82,61 @@ const Books = () => {
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div className="max-w-7xl mx-auto">
+                {/* Top Rated Section */}
+                {!loading && topRatedBooks.length > 0 && selectedCategory === 'all' && selectedType === 'all' && !searchTerm && (
+                    <div className="mb-12">
+                        <div className="flex items-center mb-6">
+                            <Star className="text-yellow-400 mr-2" size={28} fill="currentColor" />
+                            <h2 className="text-2xl font-bold text-gray-900">Top Rated Books</h2>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {topRatedBooks.map((book) => (
+                                <motion.div
+                                    key={`top-${book.id}`}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border-2 border-yellow-100"
+                                >
+                                    <div className="aspect-[3/4] relative overflow-hidden">
+                                        <div className="absolute top-2 right-2 z-10 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md flex items-center">
+                                            <Star size={12} fill="currentColor" className="mr-1" />
+                                            Top Rated
+                                        </div>
+                                        <img
+                                            src={getCoverUrl(book.cover_path)}
+                                            alt={book.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                            <Link
+                                                to={`/book/${book.id}`}
+                                                className="px-6 py-2 bg-white text-gray-900 rounded-full font-bold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+                                            >
+                                                View Details
+                                            </Link>
+                                        </div>
+                                    </div>
+                                    <div className="p-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs font-semibold text-primary-600 uppercase tracking-wider">
+                                                {book.category}
+                                            </span>
+                                            <div className="flex items-center text-yellow-400 text-xs font-bold">
+                                                <Star size={14} fill="currentColor" />
+                                                <span className="ml-1 text-gray-700">{book.rating || 0}</span>
+                                            </div>
+                                        </div>
+                                        <h3 className="font-bold text-gray-900 mb-1 line-clamp-1">{book.title}</h3>
+                                        <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                                            {book.description || 'No description available.'}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                     <h1 className="text-3xl font-bold text-gray-900">Library Collection</h1>
 
