@@ -13,7 +13,7 @@ const corsHeaders = {
 const ADMIN_EMAILS = [
   "ayman.23120261@muc.edu.eg",
   "yasmin-abdelnaby@muc.edu.eg",
-  "karim.23120276@muc.edu.eg"
+  "youssef.25140538@muc.edu.eg"
 ].map(email => email.toLowerCase());
 // ==========================================================
 
