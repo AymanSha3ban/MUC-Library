@@ -8,14 +8,23 @@ import SEO from '../components/SEO';
 
 const Book3D = () => {
     return (
-        <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-            <mesh rotation={[0, 0.5, 0]}>
-                <boxGeometry args={[2, 3, 0.5]} />
-                <meshStandardMaterial color="#D32F2F" />
+        <Float speed={1.5} rotationIntensity={0.8} floatIntensity={0.6}>
+            {/* الغلاف الخلفي */}
+            <mesh position={[0, 0, -0.12]} rotation={[0, 0.4, 0]}>
+                <boxGeometry args={[2.8, 3.6, 0.18]} />
+                <meshStandardMaterial color="#8B0000" />
             </mesh>
-            <mesh position={[0, 0, 0.26]}>
-                <boxGeometry args={[1.9, 2.9, 0.05]} />
-                <meshStandardMaterial color="#FFFFFF" />
+
+            {/* الغلاف الأمامي */}
+            <mesh position={[0, 0, 0.12]} rotation={[0, 0.4, 0]}>
+                <boxGeometry args={[2.8, 3.6, 0.18]} />
+                <meshStandardMaterial color="#B40000" />
+            </mesh>
+
+            {/* الصفحات */}
+            <mesh position={[0, 0, 0]}>
+                <boxGeometry args={[2.6, 3.4, 0.22]} />
+                <meshStandardMaterial color="#ede7d1" />
             </mesh>
         </Float>
     );
@@ -25,7 +34,7 @@ const Home = () => {
     const categories = [
         { id: 'computer', name: 'Computer Engineering', icon: Cpu, color: 'bg-blue-500' },
         { id: 'robotics', name: 'Robotics', icon: Zap, color: 'bg-yellow-500' },
-        { id: 'electrical', name: 'Electrical Engineering', icon: Zap, color: 'bg-orange-500' }, // Reusing Zap for now
+        { id: 'electrical', name: 'Electrical Engineering', icon: Zap, color: 'bg-orange-500' },
         { id: 'architecture', name: 'Architecture', icon: PenTool, color: 'bg-purple-500' },
     ];
 
@@ -36,12 +45,12 @@ const Home = () => {
                 description="Access thousands of resources for Computer, Robotics, Electrical, and Architecture engineering at MUC Library."
                 keywords="MUC, Library, Engineering, Computer, Robotics, Electrical, Architecture"
             />
+
             {/* Hero Section */}
             <section className="relative h-[600px] bg-gray-900 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-transparent z-10" />
 
                 <div className="absolute inset-0 z-0 opacity-30">
-                    {/* Placeholder for university image */}
                     <div className="w-full h-full bg-[url('/bg2.png')] bg-cover bg-center" />
                 </div>
 
@@ -67,17 +76,19 @@ const Home = () => {
                             </Link>
                         </motion.div>
 
+                        {/* 3D BOOK */}
                         <div className="h-[400px] w-full hidden md:block">
-                            <Canvas camera={{ position: [0, 0, 5] }}>
-                                <ambientLight intensity={0.5} />
-                                <pointLight position={[10, 10, 10]} />
+                            <Canvas camera={{ position: [0, 0, 6] }}>
+                                <ambientLight intensity={1} />
+                                <directionalLight position={[5, 5, 5]} intensity={1.2} />
 
                                 <Suspense fallback={null}>
-                                    <Book3D /> 
-                                    <OrbitControls 
-                                        enableZoom={false} 
-                                        autoRotate 
-                                        autoRotateSpeed={5}  // ← سرعة عالية
+                                    <Book3D />
+
+                                    <OrbitControls
+                                        enableZoom={false}
+                                        autoRotate
+                                        autoRotateSpeed={1.5}   // دوران أنعم وأجمل
                                     />
                                 </Suspense>
                             </Canvas>
