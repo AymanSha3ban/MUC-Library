@@ -32,24 +32,24 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
-    
+
     if (!supabaseUrl || !serviceRoleKey) throw new Error("Missing Keys");
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const token = crypto.randomUUID();
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // صلاحية الكود 15 دقيقة
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     const { error: dbError } = await supabase
       .from("verifications")
-      .insert({ 
-        email, 
-        token, 
-        code, 
-        expires_at: expiresAt 
+      .insert({
+        email,
+        token,
+        code,
+        expires_at: expiresAt
       });
 
     if (dbError) throw dbError;
@@ -58,17 +58,27 @@ serve(async (req) => {
     const verifyUrl = `${frontendUrl}/verify?token=${token}`;
     const qrImage = await qrcode(code);
 
+    const smtpHost = Deno.env.get("SMTP_HOST") ?? "smtp.gmail.com";
+    const smtpPort = Deno.env.get("SMTP_PORT") ?? "465";
+    const smtpUser = Deno.env.get("SMTP_USER");
+    const smtpPass = Deno.env.get("SMTP_PASS");
+
+    if (!smtpUser || !smtpPass) {
+      console.error("Missing SMTP Configuration: User or Pass");
+      throw new Error("Missing SMTP Configuration");
+    }
+
     // إرسال الإيميل
     const client = new SmtpClient();
     await client.connectTLS({
-      hostname: Deno.env.get("SMTP_HOST") ?? "smtp.gmail.com",
-      port: parseInt(Deno.env.get("SMTP_PORT") ?? "465"),
-      username: Deno.env.get("SMTP_USER") ?? "",
-      password: Deno.env.get("SMTP_PASS") ?? "",
+      hostname: smtpHost,
+      port: parseInt(smtpPort),
+      username: smtpUser,
+      password: smtpPass,
     });
 
     await client.send({
-      from:"muclibrary@muc.edu.eg",
+      from: "muclibrary@muc.edu.eg",
       to: email,
       subject: "MUC Library Verification Code",
       html: `

@@ -32,7 +32,9 @@ const Login = () => {
             setSent(true);
         } catch (err: any) {
             console.error('Login error:', err);
-            setError(err.message || 'Failed to send verification email');
+            // Improved error logging
+            const errorMessage = err.message || (err.context && err.context.json && await err.context.json().then((res: any) => res.error).catch(() => '')) || 'Failed to send verification email';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

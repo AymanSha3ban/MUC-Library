@@ -72,6 +72,10 @@ DROP POLICY IF EXISTS "Admin Delete PDFs" ON storage.objects;
 DROP POLICY IF EXISTS "User Upload Profile" ON storage.objects;
 DROP POLICY IF EXISTS "User Update Profile" ON storage.objects;
 DROP POLICY IF EXISTS "Public View Profiles" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Upload Books Content" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Update Books Content" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Delete Books Content" ON storage.objects;
+DROP POLICY IF EXISTS "Public View Covers" ON storage.objects;
 
 -- Admin access for Books Content
 CREATE POLICY "Admin Upload Books Content" ON storage.objects
