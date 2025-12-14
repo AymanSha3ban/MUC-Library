@@ -1,68 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Loader2, Edit, Trash2, BookOpen } from 'lucide-react';
+import { Upload, Loader2, Edit, Trash2, BookOpen, Plus, School, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 const AdminDashboard = () => {
-    const { role } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
-
-    // Redirect if not admin
-    if (role && role !== 'admin') {
-        navigate('/');
-        return null;
-    }
-
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
     const [books, setBooks] = useState<any[]>([]);
-    const [editingBook, setEditingBook] = useState<any | null>(null);
+    const [colleges, setColleges] = useState<any[]>([]);
+    const [editingBook, setEditingBook] = useState<any>(null);
+
+    // Form State
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('computer');
-    const [bookType, setBookType] = useState<'free' | 'paid'>('free');
+    const [collegeId, setCollegeId] = useState('');
+    const [bookFormat, setBookFormat] = useState<'digital' | 'physical' | 'external' | 'bsh'>('digital');
+    const [shelfLocation, setShelfLocation] = useState('');
     const [externalLink, setExternalLink] = useState('');
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
 
-    // Fetch books on mount
     useEffect(() => {
-        fetchBooks();
-        if (location.state?.editBook) {
-            startEdit(location.state.editBook);
-            // Clear state from navigation history
-            window.history.replaceState({}, document.title);
+        if (!user) {
+            navigate('/login');
+            return;
         }
-    }, []);
+        fetchColleges();
+        fetchBooks();
+    }, [user, navigate]);
+
+    const fetchColleges = async () => {
+        const { data, error } = await supabase.from('colleges').select('*').order('name');
+        if (error) console.error('Error fetching colleges:', error);
+        else setColleges(data || []);
+    };
 
     const fetchBooks = async () => {
         const { data, error } = await supabase
             .from('books')
-            .select('*')
+            .select('*, colleges(name)')
             .order('created_at', { ascending: false });
 
         if (error) console.error('Error fetching books:', error);
         else setBooks(data || []);
     };
 
+    const handleAddCollege = async () => {
+        const { value: collegeName } = await Swal.fire({
+            title: 'Add New College',
+            input: 'text',
+            inputLabel: 'College Name',
+            inputPlaceholder: 'e.g. Engineering',
+            showCancelButton: true,
+            inputValidator: (value) => {
+                if (!value) return 'You need to write something!';
+            }
+        });
+
+        if (collegeName) {
+            try {
+                const { error } = await supabase.from('colleges').insert([{ name: collegeName }]);
+                if (error) throw error;
+                Swal.fire('Success', 'College added successfully', 'success');
+                fetchColleges();
+            } catch (err: any) {
+                Swal.fire('Error', err.message, 'error');
+            }
+        }
+    };
+
+    const handleDeleteCollege = async (id: string) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "This will also delete all books associated with this college!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const { error } = await supabase.from('colleges').delete().eq('id', id);
+                if (error) throw error;
+                Swal.fire('Deleted!', 'College has been deleted.', 'success');
+                fetchColleges();
+            } catch (err: any) {
+                Swal.fire('Error', err.message, 'error');
+            }
+        }
+    };
+
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validation: For new books, files are required. For edit, they are optional.
+        // Validation
         if (!editingBook) {
             if (!coverFile) {
                 setMessage('Please select a cover image.');
                 return;
             }
-            if (bookType === 'free' && !pdfFile) {
-                setMessage('Please select a PDF file for free books.');
+            if ((bookFormat === 'digital' || bookFormat === 'bsh') && !pdfFile) {
+                setMessage('Please select a PDF file for digital books.');
                 return;
             }
-            if (bookType === 'paid' && !externalLink) {
-                setMessage('Please provide an external link for paid books.');
+            if (bookFormat === 'external' && !externalLink) {
+                setMessage('Please provide an external link.');
+                return;
+            }
+            if (bookFormat === 'physical' && !shelfLocation) {
+                setMessage('Please provide a shelf location.');
                 return;
             }
         }
@@ -86,8 +138,8 @@ const AdminDashboard = () => {
                 coverPath = coverData.path;
             }
 
-            // 2. Upload PDF if changed
-            if (pdfFile) {
+            // 2. Upload PDF if changed and format is digital or bsh
+            if (pdfFile && (bookFormat === 'digital' || bookFormat === 'bsh')) {
                 const pdfExt = pdfFile.name.split('.').pop();
                 const pdfName = `${Date.now()}-book.${pdfExt}`;
                 const { data: pdfData, error: pdfError } = await supabase.storage
@@ -101,15 +153,17 @@ const AdminDashboard = () => {
             const bookData = {
                 title,
                 description,
-                category,
-                type: bookType,
-                external_link: bookType === 'paid' ? externalLink : null,
+                category: bookFormat === 'bsh' ? 'Basic Science & Humanities' : category,
+                college_id: collegeId || null,
+                book_format: bookFormat === 'bsh' ? 'digital' : bookFormat,
+                shelf_location: bookFormat === 'physical' ? shelfLocation : null,
+                external_link: bookFormat === 'external' ? externalLink : null,
                 cover_path: coverPath,
-                pdf_path: bookType === 'free' ? pdfPath : null,
+                pdf_path: (bookFormat === 'digital' || bookFormat === 'bsh') ? pdfPath : null,
+                type: bookFormat === 'external' ? 'paid' : 'free' // Backward compatibility
             };
 
             if (editingBook) {
-                // Update existing book
                 const { error: updateError } = await supabase
                     .from('books')
                     .update(bookData)
@@ -118,7 +172,6 @@ const AdminDashboard = () => {
                 if (updateError) throw updateError;
                 setMessage('Book updated successfully!');
             } else {
-                // Insert new book
                 const { error: insertError } = await supabase
                     .from('books')
                     .insert({
@@ -130,7 +183,6 @@ const AdminDashboard = () => {
                 setMessage('Book added successfully!');
             }
 
-            // Reset form and refresh list
             resetForm();
             fetchBooks();
 
@@ -142,7 +194,6 @@ const AdminDashboard = () => {
         }
     };
 
-
     const handleDelete = async (id: string) => {
         const result = await Swal.fire({
             title: 'Are you sure?',
@@ -150,7 +201,6 @@ const AdminDashboard = () => {
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
             confirmButtonText: 'Yes, delete it!'
         });
 
@@ -159,20 +209,10 @@ const AdminDashboard = () => {
         try {
             const { error } = await supabase.from('books').delete().eq('id', id);
             if (error) throw error;
-
-            Swal.fire(
-                'Deleted!',
-                'Book deleted successfully.',
-                'success'
-            );
+            Swal.fire('Deleted!', 'Book deleted successfully.', 'success');
             fetchBooks();
         } catch (err: any) {
-            console.error('Delete error:', err);
-            Swal.fire(
-                'Error!',
-                `Error deleting book: ${err.message}`,
-                'error'
-            );
+            Swal.fire('Error!', `Error deleting book: ${err.message}`, 'error');
         }
     };
 
@@ -181,7 +221,20 @@ const AdminDashboard = () => {
         setTitle(book.title);
         setDescription(book.description);
         setCategory(book.category);
-        setBookType(book.type || 'free');
+        setCollegeId(book.college_id || '');
+
+        // Determine format based on category and book_format
+        let format = book.book_format;
+        if (book.category === 'Basic Science & Humanities') {
+            format = 'bsh';
+        } else if (book.type === 'paid') {
+            format = 'external';
+        } else if (!format) {
+            format = 'digital';
+        }
+        setBookFormat(format);
+
+        setShelfLocation(book.shelf_location || '');
         setExternalLink(book.external_link || '');
         setCoverFile(null);
         setPdfFile(null);
@@ -194,7 +247,9 @@ const AdminDashboard = () => {
         setTitle('');
         setDescription('');
         setCategory('computer');
-        setBookType('free');
+        setCollegeId('');
+        setBookFormat('digital');
+        setShelfLocation('');
         setExternalLink('');
         setCoverFile(null);
         setPdfFile(null);
@@ -202,7 +257,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -245,30 +300,79 @@ const AdminDashboard = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">College / Section</label>
                                         <select
-                                            value={category}
-                                            onChange={(e) => setCategory(e.target.value)}
+                                            value={collegeId}
+                                            onChange={(e) => setCollegeId(e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                                         >
-                                            <option value="computer">Computer Engineering</option>
-                                            <option value="robotics">Robotics</option>
-                                            <option value="electrical">Electrical Engineering</option>
-                                            <option value="architecture">Architecture</option>
+                                            {colleges.map((college) => (
+                                                <option key={college.id} value={college.id}>{college.name}</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">Select the college this book belongs to.</p>
+                                    </div>
+
+                                    {colleges.find(c => c.id === collegeId)?.name === 'Engineering' && bookFormat !== 'bsh' && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Department / Category</label>
+                                            <select
+                                                value={category}
+                                                onChange={(e) => setCategory(e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                            >
+                                                <option value="computer">Computer</option>
+                                                <option value="robotics">Robotics</option>
+                                                <option value="electrical">Electrical</option>
+                                                <option value="architecture">Architecture</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Book Format</label>
+                                        <select
+                                            value={bookFormat}
+                                            onChange={(e) => setBookFormat(e.target.value as any)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                        >
+                                            <option value="digital">Digital (free pdf)</option>
+                                            <option value="external">External Link (Paid)</option>
+                                            <option value="physical">Physical Book</option>
+                                            <option value="bsh">Basic Science & Humanities</option>
                                         </select>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Book Type</label>
-                                        <select
-                                            value={bookType}
-                                            onChange={(e) => setBookType(e.target.value as 'free' | 'paid')}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                        >
-                                            <option value="free">Free (PDF)</option>
-                                            <option value="paid">Paid (External Link)</option>
-                                        </select>
-                                    </div>
+                                    {bookFormat === 'physical' && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Shelf Location</label>
+                                            <div className="relative">
+                                                <MapPin className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                                <input
+                                                    type="text"
+                                                    value={shelfLocation}
+                                                    onChange={(e) => setShelfLocation(e.target.value)}
+                                                    placeholder="e.g. Row A, Shelf 3"
+                                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {bookFormat === 'external' && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">External Link</label>
+                                            <input
+                                                type="url"
+                                                value={externalLink}
+                                                onChange={(e) => setExternalLink(e.target.value)}
+                                                placeholder="https://example.com/book"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    )}
 
                                     <div className="space-y-3">
                                         <div>
@@ -283,7 +387,7 @@ const AdminDashboard = () => {
                                             />
                                         </div>
 
-                                        {bookType === 'free' ? (
+                                        {(bookFormat === 'digital' || bookFormat === 'bsh') && (
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     {editingBook ? 'Update PDF (Optional)' : 'Book PDF'}
@@ -293,18 +397,6 @@ const AdminDashboard = () => {
                                                     accept=".pdf"
                                                     onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
                                                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">External Link</label>
-                                                <input
-                                                    type="url"
-                                                    value={externalLink}
-                                                    onChange={(e) => setExternalLink(e.target.value)}
-                                                    placeholder="https://example.com/book"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                                                    required={bookType === 'paid'}
                                                 />
                                             </div>
                                         )}
@@ -329,7 +421,37 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* List Section */}
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Colleges Management */}
+                        <div className="bg-white rounded-2xl shadow-lg p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                                    <School className="mr-2" /> Colleges ({colleges.length})
+                                </h2>
+                                <button
+                                    onClick={handleAddCollege}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                    <Plus size={18} />
+                                    <span>Add College</span>
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {colleges.map((college) => (
+                                    <div key={college.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:bg-gray-50">
+                                        <span className="font-medium text-gray-900">{college.name}</span>
+                                        <button
+                                            onClick={() => handleDeleteCollege(college.id)}
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Books List */}
                         <div className="bg-white rounded-2xl shadow-lg p-6">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                                 <BookOpen className="mr-2" /> Library Collection ({books.length})
@@ -356,7 +478,20 @@ const AdminDashboard = () => {
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <h3 className="font-bold text-gray-900">{book.title}</h3>
-                                                    <p className="text-sm text-gray-500 capitalize">{book.category}</p>
+                                                    <div className="flex flex-wrap gap-2 mt-1">
+                                                        {book.colleges ? (
+                                                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                                                {book.colleges.name}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
+                                                                Global
+                                                            </span>
+                                                        )}
+                                                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded-full capitalize">
+                                                            {book.book_format}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex space-x-2">
                                                     <button

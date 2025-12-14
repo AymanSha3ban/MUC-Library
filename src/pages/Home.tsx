@@ -1,11 +1,12 @@
-import { useRef, useEffect, Suspense } from 'react';
+import { useRef, useEffect, useState, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Float, ContactShadows, Environment } from '@react-three/drei';
 import type { Mesh, Group } from 'three';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Cpu, Zap, PenTool, ArrowRight } from 'lucide-react';
+import { Cpu, Zap, PenTool, ArrowRight, Book } from 'lucide-react';
 import SEO from '../components/SEO';
+import { supabase } from '../lib/supabaseClient';
 
 // === Book3D component: Open-Book cinematic animation ===
 // هذا المكون يمثل الكتاب ثلاثي الأبعاد مع رسوم متحركة للفتح التلقائي
@@ -132,19 +133,35 @@ function Book3D({ openTarget = 1 }) {
 
 // === The Home page with cinematic Canvas ===
 export default function Home() {
-    const categories = [
-        { id: 'computer', name: 'Computer Engineering', icon: Cpu, color: 'bg-blue-500' },
-        { id: 'robotics', name: 'Robotics', icon: Zap, color: 'bg-yellow-500' },
-        { id: 'electrical', name: 'Electrical Engineering', icon: Zap, color: 'bg-orange-500' },
-        { id: 'architecture', name: 'Architecture', icon: PenTool, color: 'bg-purple-500' },
-    ];
+    const [colleges, setColleges] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchColleges = async () => {
+            const { data } = await supabase.from('colleges').select('*').order('name');
+            if (data) setColleges(data);
+        };
+        fetchColleges();
+    }, []);
+
+    const getIcon = (name: string) => {
+        const lower = name.toLowerCase();
+        if (lower.includes('computer')) return Cpu;
+        if (lower.includes('electrical')) return Zap;
+        if (lower.includes('architecture')) return PenTool;
+        return Book;
+    };
+
+    const getColor = (index: number) => {
+        const colors = ['bg-blue-500', 'bg-yellow-500', 'bg-orange-500', 'bg-purple-500', 'bg-green-500', 'bg-red-500'];
+        return colors[index % colors.length];
+    };
 
     return (
         <div className="min-h-screen pt-16">
             <SEO
                 title="Home"
-                description="Access thousands of resources for Computer, Robotics, Electrical, and Architecture engineering at MUC Library."
-                keywords="MUC, Library, Engineering, Computer, Robotics, Electrical, Architecture"
+                description="Access thousands of resources for Engineering, Nursing, Physical Therapy, and Business at MUC Library."
+                keywords="MUC, Library, Engineering, Nursing, Physical Therapy, Business"
             />
 
             {/* Hero Section */}
@@ -159,10 +176,10 @@ export default function Home() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
                         <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9 }}>
                             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-                                MUC Engineering <span className="text-primary-500">Library</span>
+                                MUC University <span className="text-primary-500">Library</span>
                             </h1>
                             <p className="text-xl text-gray-300 mb-8 max-w-lg">
-                                Access thousands of resources for Computer, Robotics, Electrical, and Architecture engineering.
+                                Access thousands of resources across all colleges and global sections.
                             </p>
                             <Link to="/books" className="inline-flex items-center space-x-2 px-8 py-4 bg-primary-600 text-white rounded-full font-bold text-lg hover:bg-primary-700 transition-colors">
                                 <span>Browse Library</span>
@@ -195,29 +212,63 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Categories Section (exact same as before) */}
+            {/* Colleges & Sections */}
             <section className="py-20 bg-gray-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Browse by Department</h2>
+                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Browse by College & Section</h2>
                         <p className="text-gray-600 max-w-2xl mx-auto">Find resources tailored to your specific field of study.</p>
                     </motion.div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {categories.map((category, index) => (
-                            <motion.div key={category.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.08 }}>
-                                <Link to={`/books?category=${category.id}`} className="block group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                                    <div className={`h-2 bg-gradient-to-r ${category.color} to-primary-500`} />
-                                    <div className="p-8">
-                                        <div className={`w-14 h-14 ${category.color} bg-opacity-10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                                            <category.icon size={32} />
+                        {/* Dynamic Colleges */}
+                        {colleges.map((college, index) => {
+                            const Icon = getIcon(college.name);
+                            const color = getColor(index);
+                            // Extract the base color name (e.g., 'blue' from 'bg-blue-500') for dynamic classes
+                            const baseColor = color.replace('bg-', '').replace('-500', '');
+
+                            return (
+                                <motion.div
+                                    key={college.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: (index + 2) * 0.08 }}
+                                >
+                                    <Link
+                                        to={`/books?college=${college.id}`}
+                                        className="relative block group h-full"
+                                    >
+                                        <div className={`absolute inset-0 bg-gradient-to-br from-${baseColor}-500/20 to-${baseColor}-600/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+
+                                        <div className="relative h-full bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 overflow-hidden">
+                                            {/* Decorative background circle */}
+                                            <div className={`absolute -right-8 -top-8 w-32 h-32 bg-${baseColor}-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out`} />
+
+                                            <div className="relative z-10">
+                                                <div className={`w-16 h-16 ${color} text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                                                    <Icon size={32} />
+                                                </div>
+
+                                                <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                                                    {college.name}
+                                                </h3>
+
+                                                <p className="text-gray-500 text-sm mb-6 line-clamp-2">
+                                                    Explore specialized resources and academic materials for {college.name}.
+                                                </p>
+
+                                                <div className="flex items-center text-sm font-semibold text-primary-600 group-hover:translate-x-2 transition-transform duration-300">
+                                                    <span>Browse Collection</span>
+                                                    <ArrowRight size={16} className="ml-2" />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-2">{category.name}</h3>
-                                        <p className="text-gray-500 text-sm">Explore books & resources</p>
-                                    </div>
-                                </Link>
-                            </motion.div>
-                        ))}
+                                    </Link>
+                                </motion.div>
+                            );
+                        })}
                     </div>
                 </div>
             </section>

@@ -1,13 +1,46 @@
-# MUC Engineering Library
+# MUC University Library
 
-A full-stack digital library for MUC Engineering College, built with React (Vite) and Supabase.
+A comprehensive, full-stack digital library system designed for MUC University, serving Engineering, Nursing, Physical Therapy, and Business colleges. Built with React (Vite) and Supabase.
 
 ## Features
-- **Authentication**: University email verification (`@muc.edu.eg`) via QR code and email OTP.
-- **Role-Based Access**: Students can view/download; Admins can manage books.
-- **Library Management**: Upload books (PDFs + Covers) to Supabase Storage.
-- **Interactive UI**: 3D elements, animations, and responsive design.
-- **No Server Storage**: All files are stored in Supabase Storage buckets.
+
+### 📚 Multi-College Support
+- **Dynamic Filtering:** Resources are organized by college (Engineering, Nursing, Physical Therapy, Business).
+- **Specialized Sections:** Dedicated handling for "Basic Science & Humanities" across all colleges.
+- **Global Access:** Seamless navigation between different college libraries.
+
+### 🎨 Advanced UI/UX
+- **Cinematic Experience:** 3D interactive book animations using **React Three Fiber**.
+- **Modern Design:** Glassmorphism effects, rich gradients, and smooth transitions powered by **Framer Motion**.
+- **Responsive Layout:** Fully optimized for desktop, tablet, and mobile devices.
+
+### 🔐 Secure Authentication
+- **University Verification:** Exclusive access for `@muc.edu.eg` email addresses.
+- **Dual-Factor Auth:** Secure login via QR code scanning and email OTP verification.
+- **Role-Based Access Control (RBAC):**
+    - **Students:** View, search, and download resources.
+    - **Admins:** Manage book inventory, upload resources, and edit metadata.
+
+### 🛠️ Library Management
+- **Admin Dashboard:** Powerful interface for adding, editing, and categorizing books.
+- **Cloud Storage:** Secure hosting of PDF files and cover images via **Supabase Storage**.
+- **Format Support:** Handles Digital (PDF), Physical, and External (Paid) book formats.
+
+### 👥 Meet the Developers
+- **Professional Credits:** A dedicated page showcasing the development team.
+- **Academic Supervision:** Acknowledgment of the academic supervisors who guided the project.
+
+## Tech Stack
+
+- **Frontend:**
+    - [React](https://reactjs.org/) (Vite)
+    - [TailwindCSS](https://tailwindcss.com/)
+    - [Framer Motion](https://www.framer.com/motion/)
+    - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
+    - [Lucide React](https://lucide.dev/)
+
+- **Backend:**
+    - [Supabase](https://supabase.com/) (PostgreSQL Database, Auth, Storage, Edge Functions)
 
 ## Setup Instructions
 
@@ -15,17 +48,17 @@ A full-stack digital library for MUC Engineering College, built with React (Vite
 1. Create a new Supabase project.
 2. Go to the SQL Editor and run the content of `supabase/migrations/20240101000000_initial_schema.sql`.
 3. Run the content of `supabase/storage_policies.sql` to create buckets and policies.
-4. Get your Project URL and Anon Key from Project Settings > API.
+4. Get your **Project URL** and **Anon Key** from Project Settings > API.
 
 ### 2. Environment Variables
 1. Copy `.env.example` to `.env` (or create `.env`).
 2. Fill in your Supabase credentials:
-   ```
+   ```env
    VITE_SUPABASE_URL=your_project_url
    VITE_SUPABASE_ANON_KEY=your_anon_key
    ```
 
-### 3. Edge Functions
+### 3. Edge Functions (Optional for Auth)
 1. Install Supabase CLI.
 2. Login: `supabase login`
 3. Link your project: `supabase link --project-ref your-project-ref`
@@ -57,10 +90,10 @@ A full-stack digital library for MUC Engineering College, built with React (Vite
    ```
 
 ## Testing
-- **Login**: Use any `@muc.edu.eg` email. Check your email (or logs if testing locally) for the code.
-- **Admin**: The email `ayman.23120261@muc.edu.eg` is hardcoded as Admin. Login with this email to access the Dashboard.
+- **Login:** Use any `@muc.edu.eg` email. Check your email (or logs if testing locally) for the OTP code.
+- **Admin Access:** The email `ayman.23120261@muc.edu.eg` is configured as a Super Admin. Login with this email to access the Admin Dashboard.
 
-## Tech Stack
-- **Frontend**: React, Vite, TailwindCSS, Framer Motion, React Three Fiber.
-- **Backend**: Supabase (Auth, Database, Storage, Edge Functions).
-# MUC-Library
+---
+&copy; 2025 MUC University. All Rights Reserved.
+
+**Developed by [Ayman Shaaban](https://www.linkedin.com/in/ayman-shaaban-204516273/)**
