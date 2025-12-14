@@ -3,15 +3,15 @@ import { Users, Linkedin } from 'lucide-react';
 
 const developers = [
     { name: 'Ayman Shaaban', image: '/Ayman.png', linkedin: 'https://www.linkedin.com/in/ayman-shaaban-204516273/' },
-    { name: 'Omran Amr', image: '/Omran0.png', linkedin: '#' },
+    { name: 'Omran Amr', image: '/Omran0.png', linkedin: 'https://www.linkedin.com/in/omran10/' },
     { name: 'Karim reda', image: '/Karim.png', linkedin: '#' },
     { name: 'Abdo Nasr', image: '/Abdonaser.png', linkedin: '#' },
     { name: 'Abdo Hatem', image: '/Abdohatem.png', linkedin: '#' },
     { name: 'Abdo Elmasry', image: '/Abdomasry.png', linkedin: '#' },
     { name: 'Sharqawy', image: '/Sharqawy.png', linkedin: '#' },
-    { name: 'Yousef Elbadre', image: '/Yousefbadre.png', linkedin: '#' },
+    { name: 'Yousef Elbadre', image: '/Yousefbadre.png', linkedin: 'https://www.linkedin.com/in/yousef-mohamed-4bb659291/' },
     { name: 'Yousef Mohamed', image: '/Yousef.png', linkedin: 'https://www.linkedin.com/in/youssef-mohamed-6a1a36361/' },
-    { name: 'Mohammed Sayed', image: '/Mohamed.png', linkedin: '#' },
+    { name: 'Mohammed Sayed', image: '/Mohamed.png', linkedin: 'https://www.linkedin.com/in/mohamed-sayed520/' },
 ];
 
 const AboutDevelopers = () => {
