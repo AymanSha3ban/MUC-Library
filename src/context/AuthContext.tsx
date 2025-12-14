@@ -88,9 +88,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const signOut = async () => {
-        await supabase.auth.signOut();
-        setRole(null);
-        setProfilePath(null);
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) console.error('Error signing out:', error);
+        } catch (error) {
+            console.error('Unexpected error signing out:', error);
+        } finally {
+            setRole(null);
+            setProfilePath(null);
+            setSession(null);
+            setUser(null);
+            localStorage.removeItem('sb-uqpbcptlgivtpmbuhjlf-auth-token'); // Clear Supabase token if known, or let supabase handle it.
+            // Actually, we shouldn't hardcode the key if possible, but clearing state is key.
+        }
     };
 
     return (
