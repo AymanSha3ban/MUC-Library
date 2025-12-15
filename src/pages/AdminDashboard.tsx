@@ -12,14 +12,15 @@ const AdminDashboard = () => {
     const [message, setMessage] = useState('');
     const [books, setBooks] = useState<any[]>([]);
     const [colleges, setColleges] = useState<any[]>([]);
+    const [departments, setDepartments] = useState<any[]>([]);
     const [editingBook, setEditingBook] = useState<any>(null);
 
     // Form State
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('computer');
+    const [category, setCategory] = useState('');
     const [collegeId, setCollegeId] = useState('');
-    const [bookFormat, setBookFormat] = useState<'digital' | 'physical' | 'external' | 'bsh'>('digital');
+    const [bookFormat, setBookFormat] = useState<'digital' | 'physical' | 'external'>('digital');
     const [shelfLocation, setShelfLocation] = useState('');
     const [externalLink, setExternalLink] = useState('');
     const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -31,6 +32,7 @@ const AdminDashboard = () => {
             return;
         }
         fetchColleges();
+        fetchDepartments();
         fetchBooks();
     }, [user, navigate]);
 
@@ -38,6 +40,12 @@ const AdminDashboard = () => {
         const { data, error } = await supabase.from('colleges').select('*').order('name');
         if (error) console.error('Error fetching colleges:', error);
         else setColleges(data || []);
+    };
+
+    const fetchDepartments = async () => {
+        const { data, error } = await supabase.from('departments').select('*').order('name');
+        if (error) console.error('Error fetching departments:', error);
+        else setDepartments(data || []);
     };
 
     const fetchBooks = async () => {
@@ -74,6 +82,44 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleAddDepartment = async () => {
+        const collegeOptions = colleges.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+        const { value: formValues } = await Swal.fire({
+            title: 'Add New Department',
+            html:
+                '<input id="swal-input1" class="swal2-input" placeholder="Department Name">' +
+                '<select id="swal-input2" class="swal2-input">' +
+                '<option value="" disabled selected>Select College</option>' +
+                collegeOptions +
+                '</select>',
+            focusConfirm: false,
+            preConfirm: () => {
+                return [
+                    (document.getElementById('swal-input1') as HTMLInputElement).value,
+                    (document.getElementById('swal-input2') as HTMLSelectElement).value
+                ]
+            }
+        });
+
+        if (formValues) {
+            const [name, collegeId] = formValues;
+            if (!name || !collegeId) {
+                Swal.fire('Error', 'Please provide both name and college', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase.from('departments').insert([{ name, college_id: collegeId }]);
+                if (error) throw error;
+                Swal.fire('Success', 'Department added successfully', 'success');
+                fetchDepartments();
+            } catch (err: any) {
+                Swal.fire('Error', err.message, 'error');
+            }
+        }
+    };
+
     const handleDeleteCollege = async (id: string) => {
         const result = await Swal.fire({
             title: 'Are you sure?',
@@ -96,6 +142,72 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleDeleteDepartment = async (id: string) => {
+        const deptToDelete = departments.find(d => d.id === id);
+        if (!deptToDelete) return;
+
+        // Check if this department name exists in other colleges
+        const sameNameDepts = departments.filter(d => d.name.toLowerCase() === deptToDelete.name.toLowerCase());
+        const hasDuplicates = sameNameDepts.length > 1;
+
+        if (hasDuplicates) {
+            const result = await Swal.fire({
+                title: 'Delete Department',
+                text: `The department "${deptToDelete.name}" exists in multiple colleges.`,
+                icon: 'question',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Delete from ALL Colleges',
+                denyButtonText: `Delete only from ${colleges.find(c => c.id === deptToDelete.college_id)?.name}`,
+                confirmButtonColor: '#d33',
+                denyButtonColor: '#3085d6',
+            });
+
+            if (result.isConfirmed) {
+                // Delete from ALL
+                try {
+                    const { error } = await supabase.from('departments').delete().ilike('name', deptToDelete.name);
+                    if (error) throw error;
+                    Swal.fire('Deleted!', `All "${deptToDelete.name}" departments have been deleted.`, 'success');
+                    fetchDepartments();
+                } catch (err: any) {
+                    Swal.fire('Error', err.message, 'error');
+                }
+            } else if (result.isDenied) {
+                // Delete ONLY this one
+                try {
+                    const { error } = await supabase.from('departments').delete().eq('id', id);
+                    if (error) throw error;
+                    Swal.fire('Deleted!', 'Department has been deleted from this college.', 'success');
+                    fetchDepartments();
+                } catch (err: any) {
+                    Swal.fire('Error', err.message, 'error');
+                }
+            }
+        } else {
+            // Standard delete if no duplicates
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: "This will delete the department. Books assigned to it might lose their category association.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const { error } = await supabase.from('departments').delete().eq('id', id);
+                    if (error) throw error;
+                    Swal.fire('Deleted!', 'Department has been deleted.', 'success');
+                    fetchDepartments();
+                } catch (err: any) {
+                    Swal.fire('Error', err.message, 'error');
+                }
+            }
+        }
+    };
+
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -105,7 +217,7 @@ const AdminDashboard = () => {
                 setMessage('Please select a cover image.');
                 return;
             }
-            if ((bookFormat === 'digital' || bookFormat === 'bsh') && !pdfFile) {
+            if (bookFormat === 'digital' && !pdfFile) {
                 setMessage('Please select a PDF file for digital books.');
                 return;
             }
@@ -138,8 +250,8 @@ const AdminDashboard = () => {
                 coverPath = coverData.path;
             }
 
-            // 2. Upload PDF if changed and format is digital or bsh
-            if (pdfFile && (bookFormat === 'digital' || bookFormat === 'bsh')) {
+            // 2. Upload PDF if changed and format is digital
+            if (pdfFile && bookFormat === 'digital') {
                 const pdfExt = pdfFile.name.split('.').pop();
                 const pdfName = `${Date.now()}-book.${pdfExt}`;
                 const { data: pdfData, error: pdfError } = await supabase.storage
@@ -153,13 +265,13 @@ const AdminDashboard = () => {
             const bookData = {
                 title,
                 description,
-                category: bookFormat === 'bsh' ? 'Basic Science & Humanities' : category,
+                category: category,
                 college_id: collegeId || null,
-                book_format: bookFormat === 'bsh' ? 'digital' : bookFormat,
+                book_format: bookFormat,
                 shelf_location: bookFormat === 'physical' ? shelfLocation : null,
                 external_link: bookFormat === 'external' ? externalLink : null,
                 cover_path: coverPath,
-                pdf_path: (bookFormat === 'digital' || bookFormat === 'bsh') ? pdfPath : null,
+                pdf_path: bookFormat === 'digital' ? pdfPath : null,
                 type: bookFormat === 'external' ? 'paid' : 'free' // Backward compatibility
             };
 
@@ -220,14 +332,16 @@ const AdminDashboard = () => {
         setEditingBook(book);
         setTitle(book.title);
         setDescription(book.description);
-        setCategory(book.category);
+
+        // Handle case-insensitive category matching
+        const matchingDept = departments.find(d => d.name.toLowerCase() === (book.category || '').toLowerCase());
+        setCategory(matchingDept ? matchingDept.name : book.category);
+
         setCollegeId(book.college_id || '');
 
         // Determine format based on category and book_format
         let format = book.book_format;
-        if (book.category === 'Basic Science & Humanities') {
-            format = 'bsh';
-        } else if (book.type === 'paid') {
+        if (book.type === 'paid') {
             format = 'external';
         } else if (!format) {
             format = 'digital';
@@ -246,7 +360,7 @@ const AdminDashboard = () => {
         setEditingBook(null);
         setTitle('');
         setDescription('');
-        setCategory('computer');
+        setCategory('');
         setCollegeId('');
         setBookFormat('digital');
         setShelfLocation('');
@@ -329,7 +443,7 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
 
-                                    {colleges.find(c => c.id === collegeId)?.name === 'Engineering' && bookFormat !== 'bsh' && (
+                                    {collegeId && departments.filter(d => d.college_id === collegeId).length > 0 && (
                                         <div className="space-y-1.5 animate-fade-in">
                                             <label className="block text-sm font-semibold text-gray-700 ml-1">Department</label>
                                             <div className="relative">
@@ -338,10 +452,13 @@ const AdminDashboard = () => {
                                                     onChange={(e) => setCategory(e.target.value)}
                                                     className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200 appearance-none"
                                                 >
-                                                    <option value="computer">Computer</option>
-                                                    <option value="robotics">Robotics</option>
-                                                    <option value="electrical">Electrical</option>
-                                                    <option value="architecture">Architecture</option>
+                                                    <option value="" disabled>Select Department</option>
+                                                    {departments
+                                                        .filter(d => d.college_id === collegeId)
+                                                        .map(dept => (
+                                                            <option key={dept.id} value={dept.name}>{dept.name}</option>
+                                                        ))
+                                                    }
                                                 </select>
                                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -361,7 +478,6 @@ const AdminDashboard = () => {
                                                 <option value="digital">Digital (PDF)</option>
                                                 <option value="external">External Link (Paid)</option>
                                                 <option value="physical">Physical Book</option>
-                                                <option value="bsh">Basic Science & Humanities</option>
                                             </select>
                                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -420,7 +536,7 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
 
-                                        {(bookFormat === 'digital' || bookFormat === 'bsh') && (
+                                        {bookFormat === 'digital' && (
                                             <div className="p-4 border-2 border-dashed border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/30 transition-all duration-300 group cursor-pointer relative animate-fade-in">
                                                 <input
                                                     type="file"
@@ -476,13 +592,22 @@ const AdminDashboard = () => {
                                     </div>
                                     Colleges <span className="ml-3 text-sm font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full">{colleges.length}</span>
                                 </h2>
-                                <button
-                                    onClick={handleAddCollege}
-                                    className="flex items-center space-x-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium"
-                                >
-                                    <Plus size={18} />
-                                    <span>Add College</span>
-                                </button>
+                                <div className="flex items-center">
+                                    <button
+                                        onClick={handleAddCollege}
+                                        className="flex items-center space-x-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium"
+                                    >
+                                        <Plus size={18} />
+                                        <span>Add College</span>
+                                    </button>
+                                    <button
+                                        onClick={handleAddDepartment}
+                                        className="flex items-center space-x-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium ml-2"
+                                    >
+                                        <Plus size={18} />
+                                        <span>Add Dept</span>
+                                    </button>
+                                </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {colleges.map((college) => (
@@ -492,6 +617,35 @@ const AdminDashboard = () => {
                                             onClick={() => handleDeleteCollege(college.id)}
                                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                             title="Delete College"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Departments Management */}
+                        <div className="glass rounded-3xl p-8 border border-white/40">
+                            <div className="flex items-center justify-between mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                                    <div className="p-2 bg-purple-100 text-purple-600 rounded-xl mr-3">
+                                        <School size={24} />
+                                    </div>
+                                    Departments <span className="ml-3 text-sm font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full">{departments.length}</span>
+                                </h2>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {departments.map((dept) => (
+                                    <div key={dept.id} className="group flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl hover:shadow-card hover:border-primary-100 transition-all duration-300">
+                                        <div>
+                                            <span className="font-semibold text-gray-800 text-lg group-hover:text-primary-700 transition-colors block">{dept.name}</span>
+                                            <span className="text-xs text-gray-500">{colleges.find(c => c.id === dept.college_id)?.name}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDeleteDepartment(dept.id)}
+                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                            title="Delete Department"
                                         >
                                             <Trash2 size={18} />
                                         </button>

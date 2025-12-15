@@ -36,6 +36,7 @@ const Books = () => {
     const [books, setBooks] = useState<Book[]>([]);
     const [topRatedBooks, setTopRatedBooks] = useState<Book[]>([]);
     const [colleges, setColleges] = useState<College[]>([]);
+    const [departments, setDepartments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCollege, setSelectedCollege] = useState<string>(collegeParam || 'all');
@@ -45,6 +46,7 @@ const Books = () => {
 
     useEffect(() => {
         fetchColleges();
+        fetchDepartments();
     }, []);
 
     useEffect(() => {
@@ -69,6 +71,11 @@ const Books = () => {
     const fetchColleges = async () => {
         const { data } = await supabase.from('colleges').select('*').order('name');
         if (data) setColleges(data);
+    };
+
+    const fetchDepartments = async () => {
+        const { data } = await supabase.from('departments').select('*').order('name');
+        if (data) setDepartments(data);
     };
 
     const updatePageTitle = async () => {
@@ -100,7 +107,7 @@ const Books = () => {
         if (formatParam === 'physical') query = query.eq('book_format', 'physical');
 
         if (selectedCategory !== 'all') {
-            query = query.eq('category', selectedCategory);
+            query = query.ilike('category', selectedCategory);
         }
 
         const { data, error } = await query;
@@ -120,7 +127,7 @@ const Books = () => {
         if (formatParam === 'physical') query = query.eq('book_format', 'physical');
 
         if (selectedCategory !== 'all') {
-            query = query.eq('category', selectedCategory);
+            query = query.ilike('category', selectedCategory);
         }
 
         if (selectedType !== 'all') {
@@ -147,8 +154,6 @@ const Books = () => {
         return supabase.storage.from('books-covers').getPublicUrl(path).data.publicUrl;
     };
 
-    const isEngineering = colleges.find(c => c.id === selectedCollege)?.name === 'Engineering';
-    const engineeringCategories = ['Computer', 'Robotics', 'Electrical', 'Architecture'];
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
@@ -175,22 +180,45 @@ const Books = () => {
                             />
                         </div>
 
-                        {formatParam !== 'physical' && (
-                            <div className="flex bg-white rounded-lg p-1 border border-gray-200">
-                                {(['all', 'free', 'paid'] as const).map((type) => (
-                                    <button
-                                        key={type}
-                                        onClick={() => setSelectedType(type)}
-                                        className={`px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${selectedType === type
-                                            ? 'bg-primary-100 text-primary-700 shadow-sm'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        {type}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        <div className="flex bg-white rounded-lg p-1 border border-gray-200">
+                            {(['all', 'free', 'paid'] as const).map((type) => (
+                                <button
+                                    key={type}
+                                    onClick={() => {
+                                        setSelectedType(type);
+                                        if (formatParam === 'physical') {
+                                            setSearchParams(prev => {
+                                                const newParams = new URLSearchParams(prev);
+                                                newParams.delete('format');
+                                                return newParams;
+                                            });
+                                        }
+                                    }}
+                                    className={`px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${selectedType === type && formatParam !== 'physical'
+                                        ? 'bg-primary-100 text-primary-700 shadow-sm'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {type}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => {
+                                    setSelectedType('all');
+                                    setSearchParams(prev => {
+                                        const newParams = new URLSearchParams(prev);
+                                        newParams.set('format', 'physical');
+                                        return newParams;
+                                    });
+                                }}
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${formatParam === 'physical'
+                                    ? 'bg-primary-100 text-primary-700 shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                    }`}
+                            >
+                                Physical
+                            </button>
+                        </div>
 
                         <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0">
                             <button
@@ -241,46 +269,24 @@ const Books = () => {
                             All {colleges.find(c => c.id === selectedCollege)?.name} Books
                         </button>
 
-                        {isEngineering && engineeringCategories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => {
-                                    setSelectedCategory(cat.toLowerCase());
-                                    setSearchParams({ college: selectedCollege, category: cat.toLowerCase() });
-                                }}
-                                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategory === cat.toLowerCase()
-                                    ? 'bg-gray-800 text-white'
-                                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                                    }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-
-                        <button
-                            onClick={() => {
-                                setSelectedCategory('Basic Science & Humanities');
-                                setSearchParams({ college: selectedCollege, category: 'Basic Science & Humanities' });
-                            }}
-                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategory === 'Basic Science & Humanities'
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200'
-                                }`}
-                        >
-                            Basic Science & Humanities
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                setSearchParams({ college: selectedCollege, format: 'physical' });
-                            }}
-                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${formatParam === 'physical'
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-white text-emerald-600 hover:bg-emerald-50 border border-emerald-200'
-                                }`}
-                        >
-                            Physical Books
-                        </button>
+                        {departments
+                            .filter(d => d.college_id === selectedCollege)
+                            .map(dept => (
+                                <button
+                                    key={dept.id}
+                                    onClick={() => {
+                                        setSelectedCategory(dept.name);
+                                        setSearchParams({ college: selectedCollege, category: dept.name });
+                                    }}
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategory === dept.name
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200'
+                                        }`}
+                                >
+                                    {dept.name}
+                                </button>
+                            ))
+                        }
                     </div>
                 )}
 
