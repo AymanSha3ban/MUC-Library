@@ -94,6 +94,7 @@ const AdminDashboard = () => {
                 collegeOptions +
                 '</select>',
             focusConfirm: false,
+            showCancelButton: true,
             preConfirm: () => {
                 return [
                     (document.getElementById('swal-input1') as HTMLInputElement).value,
@@ -584,25 +585,25 @@ const AdminDashboard = () => {
                     {/* List Section */}
                     <div className="lg:col-span-8 space-y-8">
                         {/* Colleges Management */}
-                        <div className="glass rounded-3xl p-8 border border-white/40">
-                            <div className="flex items-center justify-between mb-8">
+                        <div className="glass rounded-3xl p-6 sm:p-8 border border-white/40">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                                 <h2 className="text-2xl font-bold text-gray-900 flex items-center">
                                     <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl mr-3">
                                         <School size={24} />
                                     </div>
                                     Colleges <span className="ml-3 text-sm font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full">{colleges.length}</span>
                                 </h2>
-                                <div className="flex items-center">
+                                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                                     <button
                                         onClick={handleAddCollege}
-                                        className="flex items-center space-x-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium"
+                                        className="w-full sm:w-auto flex items-center justify-center space-x-2 px-3 py-2 sm:px-5 sm:py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm sm:text-base"
                                     >
                                         <Plus size={18} />
                                         <span>Add College</span>
                                     </button>
                                     <button
                                         onClick={handleAddDepartment}
-                                        className="flex items-center space-x-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium ml-2"
+                                        className="w-full sm:w-auto flex items-center justify-center space-x-2 px-3 py-2 sm:px-5 sm:py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-medium text-sm sm:text-base"
                                     >
                                         <Plus size={18} />
                                         <span>Add Dept</span>
@@ -615,7 +616,7 @@ const AdminDashboard = () => {
                                         <span className="font-semibold text-gray-800 text-lg group-hover:text-primary-700 transition-colors">{college.name}</span>
                                         <button
                                             onClick={() => handleDeleteCollege(college.id)}
-                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                             title="Delete College"
                                         >
                                             <Trash2 size={18} />
@@ -626,8 +627,8 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Departments Management */}
-                        <div className="glass rounded-3xl p-8 border border-white/40">
-                            <div className="flex items-center justify-between mb-8">
+                        <div className="glass rounded-3xl p-6 sm:p-8 border border-white/40">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                                 <h2 className="text-2xl font-bold text-gray-900 flex items-center">
                                     <div className="p-2 bg-purple-100 text-purple-600 rounded-xl mr-3">
                                         <School size={24} />
@@ -644,7 +645,7 @@ const AdminDashboard = () => {
                                         </div>
                                         <button
                                             onClick={() => handleDeleteDepartment(dept.id)}
-                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                             title="Delete Department"
                                         >
                                             <Trash2 size={18} />
@@ -655,7 +656,7 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Books List */}
-                        <div className="glass rounded-3xl p-8 border border-white/40">
+                        <div className="glass rounded-3xl p-6 sm:p-8 border border-white/40">
                             <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
                                 <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl mr-3">
                                     <BookOpen size={24} />
@@ -665,8 +666,8 @@ const AdminDashboard = () => {
 
                             <div className="space-y-4">
                                 {books.map((book) => (
-                                    <div key={book.id} className="group flex items-start p-5 bg-white border border-gray-100 rounded-2xl hover:shadow-card hover:border-primary-100 transition-all duration-300">
-                                        <div className="w-20 h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-all">
+                                    <div key={book.id} className="group flex flex-col sm:flex-row items-start p-5 bg-white border border-gray-100 rounded-2xl hover:shadow-card hover:border-primary-100 transition-all duration-300">
+                                        <div className="w-full sm:w-20 h-48 sm:h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-all mb-4 sm:mb-0">
                                             {book.cover_path ? (
                                                 <img
                                                     src={supabase.storage.from('books-covers').getPublicUrl(book.cover_path).data.publicUrl}
@@ -680,9 +681,9 @@ const AdminDashboard = () => {
                                             )}
                                         </div>
 
-                                        <div className="ml-6 flex-1 min-w-0">
+                                        <div className="sm:ml-6 flex-1 min-w-0 w-full">
                                             <div className="flex justify-between items-start">
-                                                <div className="pr-4">
+                                                <div className="pr-4 flex-1">
                                                     <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-primary-700 transition-colors">{book.title}</h3>
                                                     <div className="flex flex-wrap gap-2 mt-3">
                                                         {book.colleges ? (
@@ -704,7 +705,7 @@ const AdminDashboard = () => {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <div className="flex space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                                                     <button
                                                         onClick={() => startEdit(book)}
                                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
