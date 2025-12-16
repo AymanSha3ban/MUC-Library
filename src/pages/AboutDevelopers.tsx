@@ -5,7 +5,7 @@ const developers = [
     { name: 'Ayman Shaaban', image: '/Ayman.png', linkedin: 'https://www.linkedin.com/in/ayman-shaaban-204516273/' },
     { name: 'Omran Amr', image: '/Omran0.png', linkedin: 'https://www.linkedin.com/in/omran10/' },
     { name: 'Karim reda', image: '/Karim.png', linkedin: 'https://www.linkedin.com/in/karim-reda-a0b1022b1/' },
-    { name: 'Abdo Nasr', image: '/Abdonasr.png', linkedin: '#' },
+    { name: 'Abdo Nasr', image: '/Abdonasr.png', linkedin: 'https://www.linkedin.com/in/abdo-nasser-96a374394/' },
     { name: 'Abdo Hatem', image: '/Abdohatem.png', linkedin: 'https://www.linkedin.com/in/abdel-rahman-hatem-563b5a379/' },
     { name: 'Abdo Elmasry', image: '/Abdomasry.png', linkedin: 'https://www.linkedin.com/in/abdelrhaman-elmasry-620a8431a/' },
     { name: 'Sharqawy', image: '/Sharqawy.png', linkedin: 'https://www.linkedin.com/in/abdelrahman-al-shrqawy-a4b50936a/' },
@@ -72,7 +72,7 @@ const AboutDevelopers = () => {
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-                        {['Dr. Hassan', 'Dr. Seham', 'Eng. Yasmin'].map((name, index) => (
+                        {['Dr. Hassan', 'Dr. Seham'].map((name, index) => (
                             <motion.div
                                 key={name}
                                 initial={{ opacity: 0, y: 10 }}

@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Loader2, Edit, Trash2, BookOpen, Plus, School, MapPin } from 'lucide-react';
+import { Upload, Loader2, Edit, Trash2, BookOpen, Plus, School, MapPin, Search } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 const AdminDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [books, setBooks] = useState<any[]>([]);
     const [colleges, setColleges] = useState<any[]>([]);
     const [departments, setDepartments] = useState<any[]>([]);
     const [editingBook, setEditingBook] = useState<any>(null);
+    const [hasInitializedEdit, setHasInitializedEdit] = useState(false);
 
     // Form State
     const [title, setTitle] = useState('');
@@ -25,6 +27,7 @@ const AdminDashboard = () => {
     const [externalLink, setExternalLink] = useState('');
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         if (!user) {
@@ -357,6 +360,14 @@ const AdminDashboard = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Handle incoming edit request from navigation state
+    useEffect(() => {
+        if (location.state?.editBook && departments.length > 0 && !hasInitializedEdit) {
+            startEdit(location.state.editBook);
+            setHasInitializedEdit(true);
+        }
+    }, [location.state, departments, hasInitializedEdit]);
+
     const resetForm = () => {
         setEditingBook(null);
         setTitle('');
@@ -657,15 +668,31 @@ const AdminDashboard = () => {
 
                         {/* Books List */}
                         <div className="glass rounded-3xl p-6 sm:p-8 border border-white/40">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
-                                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl mr-3">
-                                    <BookOpen size={24} />
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                                    <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl mr-3">
+                                        <BookOpen size={24} />
+                                    </div>
+                                    Library Collection <span className="ml-3 text-sm font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full">{books.length}</span>
+                                </h2>
+                                <div className="relative w-full sm:w-72">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder="Search books..."
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all duration-200"
+                                    />
                                 </div>
-                                Library Collection <span className="ml-3 text-sm font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full">{books.length}</span>
-                            </h2>
+                            </div>
 
                             <div className="space-y-4">
-                                {books.map((book) => (
+                                {books.filter(book =>
+                                    book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                    book.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                    book.category?.toLowerCase().includes(searchTerm.toLowerCase())
+                                ).map((book) => (
                                     <div key={book.id} className="group flex flex-col sm:flex-row items-start p-5 bg-white border border-gray-100 rounded-2xl hover:shadow-card hover:border-primary-100 transition-all duration-300">
                                         <div className="w-full sm:w-20 h-48 sm:h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-all mb-4 sm:mb-0">
                                             {book.cover_path ? (
