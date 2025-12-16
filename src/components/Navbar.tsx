@@ -62,13 +62,13 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <Link to="/" className="flex items-center space-x-3 group">
-                        <motion.div
+                        <motion.img
+                            src="/web-icon.png"
+                            alt="MUC Library Logo"
                             whileHover={{ rotate: 180, scale: 1.1 }}
                             transition={{ duration: 0.6, type: "spring" }}
-                            className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/30"
-                        >
-                            <span className="text-xl">M</span>
-                        </motion.div>
+                            className="w-10 h-10 rounded-xl shadow-lg shadow-primary-500/30 object-cover"
+                        />
                         <span className="text-xl font-bold text-gray-900 tracking-tight group-hover:text-primary-700 transition-colors">
                             MUC Library
                         </span>

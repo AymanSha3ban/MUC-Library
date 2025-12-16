@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import SEO from '../components/SEO';
 
@@ -128,6 +128,19 @@ const Login = () => {
                                 )}
                             </button>
                         </form>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSent(false);
+                                setOtp('');
+                                setError('');
+                            }}
+                            className="w-full mt-4 text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center justify-center space-x-2"
+                        >
+                            <ArrowLeft size={20} />
+                            <span>Back to re-enter email</span>
+                        </button>
                     </div>
                 ) : (
                     <>
