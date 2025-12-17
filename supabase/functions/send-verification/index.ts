@@ -78,7 +78,7 @@ serve(async (req) => {
     });
 
     await client.send({
-      from: "muclibrary@muc.edu.eg",
+      from: "MUC Library <muclibrary@muc.edu.eg>",
       to: email,
       subject: "MUC Library Verification Code",
       html: `
