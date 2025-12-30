@@ -67,6 +67,14 @@ const Login = () => {
 
         } catch (err: any) {
             console.error('Verification error:', err);
+
+            // Handle Refresh Token Error
+            if (err.message && (err.message.includes("Invalid Refresh Token") || err.message.includes("Refresh Token Not Found"))) {
+                await supabase.auth.signOut();
+                setError("Session expired. Please try again.");
+                return;
+            }
+
             setError(err.message || 'Failed to verify code');
         } finally {
             setVerifyLoading(false);

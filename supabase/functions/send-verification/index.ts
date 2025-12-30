@@ -33,7 +33,10 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
 
-    if (!supabaseUrl || !serviceRoleKey) throw new Error("Missing Keys");
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Missing Supabase Configuration: SUPABASE_URL or SERVICE_ROLE_KEY");
+      throw new Error("Missing Supabase Configuration");
+    }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -64,7 +67,7 @@ serve(async (req) => {
     const smtpPass = Deno.env.get("SMTP_PASS");
 
     if (!smtpUser || !smtpPass) {
-      console.error("Missing SMTP Configuration: User or Pass");
+      console.error(`Missing SMTP Configuration: User=${!!smtpUser}, Pass=${!!smtpPass}`);
       throw new Error("Missing SMTP Configuration");
     }
 
