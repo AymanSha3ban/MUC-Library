@@ -72,7 +72,7 @@ const AboutDevelopers = () => {
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-                        {['Dr. Hassan', 'Dr. Seham'].map((name, index) => (
+                        {['Dr. Hassan Ibrahim', 'Dr. Seham Muawad' ,'Eng. Yasmin Abdelnaby'].map((name, index) => (
                             <motion.div
                                 key={name}
                                 initial={{ opacity: 0, y: 10 }}
