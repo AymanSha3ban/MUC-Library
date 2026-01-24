@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Star, BookOpen, MapPin, Library, FlaskConical } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { analytics } from '../lib/analytics';
 
 interface Book {
     id: string;
@@ -43,6 +44,13 @@ const Books = () => {
     const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
     const [selectedType, setSelectedType] = useState<'all' | 'free' | 'paid'>('all');
     const [pageTitle, setPageTitle] = useState('Library Collection');
+    const [categoryCount, setCategoryCount] = useState(0);
+
+    // Import analytics (lazy or direct)
+    // We need to import it at the top, but for this tool usage I'll assume I can't add imports easily with replace_file_content if they are far away.
+    // Actually I should have added the import first. I'll do it in a separate call or use multi_replace.
+    // Let's just add the state here and I'll add the import in the next step or use multi_replace next time.
+
 
     useEffect(() => {
         fetchColleges();
@@ -66,6 +74,11 @@ const Books = () => {
         fetchBooks();
         fetchTopRatedBooks();
         updatePageTitle();
+        if (selectedCategory !== 'all') {
+            analytics.getCategoryBookCount(selectedCategory, selectedCollege).then(setCategoryCount);
+        } else {
+            setCategoryCount(0);
+        }
     }, [selectedCollege, selectedCategory, selectedType, sectionParam, formatParam, colleges]);
 
     const fetchColleges = async () => {
@@ -165,7 +178,14 @@ const Books = () => {
                             {categoryParam === 'Basic Science & Humanities' && <FlaskConical className="mr-3 text-indigo-600" size={32} />}
                             {pageTitle}
                         </h1>
-                        {selectedCollege !== 'all' && <p className="text-gray-500 mt-1">Browsing resources for this college</p>}
+                        <div className="flex flex-col mt-1">
+                            {selectedCollege !== 'all' && <p className="text-gray-500">Browsing resources for this college</p>}
+                            {selectedCategory !== 'all' && (
+                                <p className="text-primary-600 font-medium text-sm animate-fade-in">
+                                    Showing {categoryCount} books in this category
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4">

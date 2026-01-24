@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Loader2, Edit, Trash2, BookOpen, Plus, School, MapPin, Search } from 'lucide-react';
+import { Upload, Loader2, Edit, Trash2, BookOpen, Plus, School, MapPin, Search, Users, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { analytics } from '../lib/analytics';
 
 const AdminDashboard = () => {
     const { user } = useAuth();
@@ -16,6 +17,10 @@ const AdminDashboard = () => {
     const [departments, setDepartments] = useState<any[]>([]);
     const [editingBook, setEditingBook] = useState<any>(null);
     const [hasInitializedEdit, setHasInitializedEdit] = useState(false);
+
+    // Analytics State
+    const [totalUsers, setTotalUsers] = useState(0);
+    const [bookCounts, setBookCounts] = useState<Record<string, number>>({});
 
     // Form State
     const [title, setTitle] = useState('');
@@ -37,7 +42,15 @@ const AdminDashboard = () => {
         fetchColleges();
         fetchDepartments();
         fetchBooks();
+        fetchAnalytics();
     }, [user, navigate]);
+
+    const fetchAnalytics = async () => {
+        const users = await analytics.getTotalUniqueUsers();
+        setTotalUsers(users);
+        const counts = await analytics.getBookCountsByCollege();
+        setBookCounts(counts);
+    };
 
     const fetchColleges = async () => {
         const { data, error } = await supabase.from('colleges').select('*').order('name');
@@ -392,6 +405,54 @@ const AdminDashboard = () => {
                         Welcome back, Admin
                     </div>
                 </div>
+
+                {/* Stats Section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {/* Total Users Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
+                        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                            <Users size={28} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Total Library Users</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{totalUsers}</h3>
+                        </div>
+                    </div>
+
+                    {/* Total Books Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
+                        <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
+                            <BookOpen size={28} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Total Books</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{books.length}</h3>
+                        </div>
+                    </div>
+
+                    {/* Colleges Count Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
+                        <div className="p-3 bg-purple-100 text-purple-600 rounded-xl">
+                            <School size={28} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Active Colleges</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{colleges.length}</h3>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Detailed Book Counts by College */}
+                {Object.keys(bookCounts).length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                        {Object.entries(bookCounts).map(([college, count]) => (
+                            <div key={college} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">{college}</span>
+                                <span className="text-xl font-bold text-gray-900">{count}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Form Section */}
