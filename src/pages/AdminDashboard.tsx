@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Loader2, Edit, Trash2, BookOpen, Plus, School, MapPin, Search, Users, TrendingUp } from 'lucide-react';
+import { Upload, Loader2, Edit, Trash2, BookOpen, Plus, School, MapPin, Search, Users } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
