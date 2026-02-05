@@ -11,7 +11,7 @@ interface Book {
     id: string;
     title: string;
     description: string;
-    cover_path: string;
+    cover_path: string | null;
     pdf_path: string;
     category: string;
     type: 'free' | 'paid';
@@ -19,6 +19,7 @@ interface Book {
     rating: number;
     read_count: number;
     created_at: string;
+    book_format?: 'digital' | 'external' | 'physical';
 }
 
 const BookDetails = () => {
@@ -36,7 +37,6 @@ const BookDetails = () => {
 
     useEffect(() => {
         if (id) fetchBook();
-        // Reset ref when id changes
         return () => {
             incrementedRef.current = false;
         };
@@ -71,7 +71,6 @@ const BookDetails = () => {
                 }
             }
 
-            // Fetch user rating
             if (user) {
                 const { data: ratingData } = await supabase
                     .from('ratings')
@@ -107,7 +106,6 @@ const BookDetails = () => {
 
             setUserRating(rating);
 
-            // Refresh book data to get updated average
             const { data: updatedBook } = await supabase
                 .from('books')
                 .select('rating')
@@ -131,8 +129,8 @@ const BookDetails = () => {
         }
     };
 
-    const getCoverUrl = (path: string) => {
-        if (!path) return 'https://via.placeholder.com/300x400?text=No+Cover';
+    const getCoverUrl = (path: string | null) => {
+        if (!path) return '';
         return supabase.storage.from('books-covers').getPublicUrl(path).data.publicUrl;
     };
 
@@ -151,7 +149,7 @@ const BookDetails = () => {
             <SEO
                 title={book.title}
                 description={book.description}
-                image={getCoverUrl(book.cover_path)}
+                image={book.cover_path ? getCoverUrl(book.cover_path) : undefined}
                 type="book"
             />
             <div className="max-w-7xl mx-auto">
@@ -170,13 +168,32 @@ const BookDetails = () => {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="w-full max-w-sm shadow-2xl rounded-lg overflow-hidden mb-6"
+                                className="w-full max-w-sm shadow-2xl rounded-lg overflow-hidden mb-6 bg-white aspect-[3/4] flex items-center justify-center relative"
                             >
-                                <img
-                                    src={getCoverUrl(book.cover_path)}
-                                    alt={book.title}
-                                    className="w-full h-auto"
-                                />
+                                {book.cover_path ? (
+                                    <img
+                                        src={getCoverUrl(book.cover_path)}
+                                        alt={book.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-slate-100 to-slate-300 p-8 text-center border-2 border-white/50">
+                                        <div className="p-6 bg-white/40 rounded-full mb-6 backdrop-blur-sm shadow-sm">
+                                            <BookOpen size={80} strokeWidth={0.8} className="text-slate-500 opacity-80" />
+                                        </div>
+                                        
+                                        {/* Styled Title Fallback */}
+                                        <h3 className="text-xl font-bold text-slate-700 mb-2 line-clamp-3 leading-tight px-4">
+                                            {book.title}
+                                        </h3>
+
+                                        {book.book_format === 'physical' && (
+                                            <span className="mt-4 py-1.5 px-4 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-200/80 text-slate-600 shadow-sm ring-1 ring-white/50">
+                                                Physical Book
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                             </motion.div>
 
                             <div className="w-full max-w-sm space-y-4">
@@ -232,7 +249,7 @@ const BookDetails = () => {
                                                             'The book has been deleted.',
                                                             'success'
                                                         );
-                                                        navigate('/'); // Return to library/home
+                                                        navigate('/');
                                                     } catch (err: any) {
                                                         console.error('Error deleting book:', err);
                                                         Swal.fire(
@@ -252,7 +269,6 @@ const BookDetails = () => {
                             </div>
                         </div>
 
-                        {/* Content */}
                         <div className="lg:col-span-2 p-8 lg:p-12">
                             <div className="flex items-center space-x-4 mb-4">
                                 <span className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium uppercase tracking-wide">
@@ -281,7 +297,6 @@ const BookDetails = () => {
                                 </div>
                             </div>
 
-                            {/* Rating Section */}
                             <div className="mb-8 p-6 bg-gray-50 rounded-xl">
                                 <h3 className="text-lg font-bold text-gray-900 mb-3">Rate this book</h3>
                                 <div className="flex items-center space-x-2">
@@ -315,7 +330,6 @@ const BookDetails = () => {
                                 </p>
                             </div>
 
-                            {/* PDF Viewer */}
                             {book.type === 'free' && pdfUrl && (
                                 <div className="mt-8">
                                     <h3 className="text-xl font-bold text-gray-900 mb-4">Preview</h3>

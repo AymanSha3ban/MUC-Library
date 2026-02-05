@@ -230,7 +230,7 @@ const AdminDashboard = () => {
 
         // Validation
         if (!editingBook) {
-            if (!coverFile) {
+            if (!coverFile && bookFormat !== 'physical') {
                 setMessage('Please select a cover image.');
                 return;
             }
@@ -252,7 +252,7 @@ const AdminDashboard = () => {
         setMessage('');
 
         try {
-            let coverPath = editingBook?.cover_path;
+            let coverPath = editingBook?.cover_path || null;
             let pdfPath = editingBook?.pdf_path;
 
             // 1. Upload Cover if changed
@@ -764,7 +764,7 @@ const AdminDashboard = () => {
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
-                                                    <BookOpen size={32} />
+                                                    <BookOpen size={64} className="text-gray-400" />
                                                 </div>
                                             )}
                                         </div>

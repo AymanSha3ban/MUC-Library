@@ -9,7 +9,7 @@ interface Book {
     id: string;
     title: string;
     description: string;
-    cover_path: string;
+    cover_path: string | null;
     category: string;
     type: 'free' | 'paid';
     book_format: 'digital' | 'external' | 'physical';
@@ -46,12 +46,6 @@ const Books = () => {
     const [pageTitle, setPageTitle] = useState('Library Collection');
     const [categoryCount, setCategoryCount] = useState(0);
 
-    // Import analytics (lazy or direct)
-    // We need to import it at the top, but for this tool usage I'll assume I can't add imports easily with replace_file_content if they are far away.
-    // Actually I should have added the import first. I'll do it in a separate call or use multi_replace.
-    // Let's just add the state here and I'll add the import in the next step or use multi_replace next time.
-
-
     useEffect(() => {
         fetchColleges();
         fetchDepartments();
@@ -61,11 +55,8 @@ const Books = () => {
         setSelectedCollege(collegeParam || 'all');
     }, [collegeParam]);
 
-    // Reset category when college changes
     useEffect(() => {
         if (selectedCollege === 'all' || colleges.find(c => c.id === selectedCollege)?.name !== 'Engineering') {
-            // We might want to keep 'Basic Science & Humanities' even if switching colleges?
-            // For now, let's reset to keep it simple, user can re-select.
             setSelectedCategory('all');
         }
     }, [selectedCollege, colleges]);
@@ -161,12 +152,6 @@ const Books = () => {
         book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         book.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const getCoverUrl = (path: string) => {
-        if (!path) return 'https://via.placeholder.com/300x400?text=No+Cover';
-        return supabase.storage.from('books-covers').getPublicUrl(path).data.publicUrl;
-    };
-
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
@@ -329,16 +314,25 @@ const Books = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border-2 border-yellow-100"
                                     >
-                                        <div className="aspect-[3/4] relative overflow-hidden">
+                                        <div className="aspect-[3/4] relative overflow-hidden bg-gray-100 flex items-center justify-center">
                                             <div className="absolute top-2 right-2 z-10 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md flex items-center">
                                                 <Star size={12} fill="currentColor" className="mr-1" />
                                                 Top Rated
                                             </div>
-                                            <img
-                                                src={getCoverUrl(book.cover_path)}
-                                                alt={book.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            />
+                                            
+                                            {/* Chic Fallback for Missing Cover */}
+                                            {book.cover_path ? (
+                                                <img
+                                                    src={supabase.storage.from('books-covers').getPublicUrl(book.cover_path).data.publicUrl}
+                                                    alt={book.title}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                />
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-indigo-50/50 to-slate-200/50 p-4 text-center group-hover:from-primary-50/50 group-hover:to-primary-100/50 transition-colors duration-500">
+                                                    <BookOpen size={48} strokeWidth={1} className="text-slate-400 mb-2 opacity-70 group-hover:text-primary-500 transition-colors duration-500" />
+                                                </div>
+                                            )}
+
                                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                                                 <Link
                                                     to={`/book/${book.id}`}
@@ -384,12 +378,20 @@ const Books = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
                                 >
-                                    <div className="aspect-[3/4] relative overflow-hidden">
-                                        <img
-                                            src={getCoverUrl(book.cover_path)}
-                                            alt={book.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
+                                    <div className="aspect-[3/4] relative overflow-hidden bg-gray-100 flex items-center justify-center">
+                                        {/* Chic Fallback for Missing Cover */}
+                                        {book.cover_path ? (
+                                            <img
+                                                src={supabase.storage.from('books-covers').getPublicUrl(book.cover_path).data.publicUrl}
+                                                alt={book.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-indigo-50/50 to-slate-200/50 p-4 text-center group-hover:from-primary-50/50 group-hover:to-primary-100/50 transition-colors duration-500">
+                                                <BookOpen size={64} strokeWidth={1} className="text-slate-400 mb-2 opacity-70 group-hover:text-primary-500 transition-colors duration-500" />
+                                            </div>
+                                        )}
+
                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                                             <Link
                                                 to={`/book/${book.id}`}
