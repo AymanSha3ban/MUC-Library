@@ -71,24 +71,24 @@ const AboutDevelopers = () => {
                         </p>
                     </div>
 
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-                        {['Dr. Hassan Ibrahim', 'Dr. Seham Muawad', 'Eng. Yasmin Abdelnaby'].map((name, index) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+                        {['Dr. Hassan Ibrahim', 'Dr. Seham Muawad', 'Eng. Yasmin Abdelnaby', 'Prof Dr : Mohamed Abdelsalam'].map((name, index) => (
                             <motion.div
                                 key={name}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 + (index * 0.1) }}
-                                className="group/item flex items-center space-x-3 px-6 py-3 rounded-full hover:bg-red-50/50 transition-colors duration-300 cursor-default dark:hover:bg-red-900/20"
+                                className="group/item flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 border border-gray-100 dark:bg-slate-800/50 dark:border-red-900/10 hover:shadow-lg hover:border-red-100 dark:hover:border-red-900/30 transition-all duration-300"
                             >
-                                <span className="h-2.5 w-2.5 rounded-full bg-red-500 group-hover/item:animate-ping opacity-75"></span>
-                                <span className="h-2.5 w-2.5 rounded-full bg-red-500 absolute ml-0"></span>
+                                <div className="relative mb-3">
+                                    <div className="w-3 h-3 rounded-full bg-red-500/20 absolute -left-2 top-1/2 -translate-y-1/2 group-hover/item:scale-150 transition-transform duration-300" />
+                                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                                    <div className="w-3 h-3 rounded-full bg-red-500/20 absolute -right-2 top-1/2 -translate-y-1/2 group-hover/item:scale-150 transition-transform duration-300" />
+                                </div>
 
-                                <p className="text-2xl font-bold text-gray-800 group-hover/item:text-transparent group-hover/item:bg-clip-text group-hover/item:bg-gradient-to-r group-hover/item:from-red-700 group-hover/item:to-red-500 transition-all duration-300 transform group-hover/item:scale-105 dark:text-slate-200 dark:group-hover/item:from-red-400 dark:group-hover/item:to-red-300">
+                                <p className="text-lg font-bold text-gray-800 text-center leading-tight group-hover/item:text-primary-600 transition-colors duration-300 dark:text-slate-200 dark:group-hover/item:text-red-400">
                                     {name}
                                 </p>
-
-                                <span className="h-2.5 w-2.5 rounded-full bg-red-500 group-hover/item:animate-ping opacity-75"></span>
-                                <span className="h-2.5 w-2.5 rounded-full bg-red-500 absolute right-6 opacity-0 group-hover/item:opacity-100"></span>
                             </motion.div>
                         ))}
                     </div>
