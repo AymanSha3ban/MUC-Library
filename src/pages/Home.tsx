@@ -157,7 +157,7 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen pt-16">
+        <div className="min-h-screen pt-16 bg-gray-50 dark:bg-slate-950 transition-colors duration-700">
             <SEO
                 title="Home"
                 description="Access thousands of resources for Engineering, Nursing, Physical Therapy, and Business at MUC Library."
@@ -213,11 +213,11 @@ export default function Home() {
             </section>
 
             {/* Colleges & Sections */}
-            <section className="py-20 bg-gray-50">
+            <section className="py-20 bg-gray-50 dark:bg-slate-950 transition-colors duration-700">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Browse by College & Section</h2>
-                        <p className="text-gray-600 max-w-2xl mx-auto">Find resources tailored to your specific field of study.</p>
+                        <h2 className="text-4xl font-bold text-gray-900 mb-4 dark:text-white">Browse by College & Section</h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto dark:text-slate-400">Find resources tailored to your specific field of study.</p>
                     </motion.div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -242,20 +242,19 @@ export default function Home() {
                                     >
                                         <div className={`absolute inset-0 bg-gradient-to-br from-${baseColor}-500/20 to-${baseColor}-600/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                                        <div className="relative h-full bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 overflow-hidden">
+                                        <div className="relative h-full bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 overflow-hidden dark:bg-slate-900/60 dark:border-white/5">
                                             {/* Decorative background circle */}
-                                            <div className={`absolute -right-8 -top-8 w-32 h-32 bg-${baseColor}-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out`} />
+                                            <div className={`absolute -right-8 -top-8 w-32 h-32 bg-${baseColor}-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out dark:bg-${baseColor}-900/20`} />
 
                                             <div className="relative z-10">
                                                 <div className={`w-16 h-16 ${color} text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
                                                     <Icon size={32} />
                                                 </div>
 
-                                                <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                                                <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors dark:text-white">
                                                     {college.name}
                                                 </h3>
-
-                                                <p className="text-gray-500 text-sm mb-6 line-clamp-2">
+                                                <p className="text-gray-500 text-sm mb-6 line-clamp-2 dark:text-slate-400">
                                                     Explore specialized resources and academic materials for {college.name}.
                                                 </p>
 

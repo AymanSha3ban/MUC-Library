@@ -162,15 +162,15 @@ const Profile = () => {
     };
 
     return (
-        <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-slate-950 transition-colors duration-700">
             <div className="max-w-2xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">My Profile</h1>
 
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg overflow-hidden transition-colors duration-300">
                     <div className="h-32 bg-primary-600 relative">
                         <div className="absolute -bottom-16 left-8">
                             <div className="relative group">
-                                <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden flex items-center justify-center">
+                                <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-800 bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center">
                                     {getProfileUrl() ? (
                                         <img
                                             src={getProfileUrl()!}
@@ -203,8 +203,8 @@ const Profile = () => {
 
                     <div className="pt-20 px-8 pb-8">
                         <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">{profile.display_name || 'Student'}</h2>
-                            <p className="text-gray-500 flex items-center mt-1">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.display_name || 'Student'}</h2>
+                            <p className="text-gray-500 dark:text-slate-400 flex items-center mt-1">
                                 <Mail size={16} className="mr-2" />
                                 {user?.email}
                             </p>
@@ -213,25 +213,25 @@ const Profile = () => {
 
                         <form onSubmit={handleUpdate} className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Display Name</label>
                                 <input
                                     type="text"
                                     value={profile.display_name}
                                     onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none dark:bg-slate-800 dark:text-white transition-colors duration-300"
                                     placeholder="John Doe"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Phone Number</label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                     <input
                                         type="tel"
                                         value={profile.phone}
                                         onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none dark:bg-slate-800 dark:text-white transition-colors duration-300"
                                         placeholder="+20 123 456 7890"
                                     />
                                 </div>
@@ -258,7 +258,7 @@ const Profile = () => {
                         </form>
                     </div>
 
-                    <div className="bg-gray-50 px-8 py-4 border-t border-gray-100 flex justify-end">
+                    <div className="bg-gray-50 dark:bg-slate-950/50 px-8 py-4 border-t border-gray-100 dark:border-slate-800 flex justify-end">
                         <button
                             onClick={() => {
                                 Swal.fire({
@@ -275,7 +275,7 @@ const Profile = () => {
                                     }
                                 });
                             }}
-                            className="text-red-600 hover:text-red-700 font-medium flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors"
+                            className="text-red-600 hover:text-red-700 font-medium flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         >
                             <LogOut size={20} />
                             <span>Sign Out</span>
@@ -287,7 +287,7 @@ const Profile = () => {
             {/* Cropping Modal */}
             {isCropping && imageSrc && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-                    <div className="bg-white rounded-2xl overflow-hidden w-full max-w-lg shadow-2xl">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden w-full max-w-lg shadow-2xl">
                         <div className="relative h-80 w-full bg-gray-900">
                             <Cropper
                                 image={imageSrc}
@@ -301,7 +301,7 @@ const Profile = () => {
                         </div>
                         <div className="p-6">
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Zoom</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Zoom</label>
                                 <input
                                     type="range"
                                     value={zoom}
@@ -310,7 +310,7 @@ const Profile = () => {
                                     step={0.1}
                                     aria-labelledby="Zoom"
                                     onChange={(e) => setZoom(Number(e.target.value))}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
                                 />
                             </div>
                             <div className="flex justify-end space-x-3">
@@ -319,7 +319,7 @@ const Profile = () => {
                                         setIsCropping(false);
                                         setImageSrc(null);
                                     }}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium flex items-center"
+                                    className="px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 font-medium flex items-center transition-colors"
                                 >
                                     <X size={18} className="mr-2" />
                                     Cancel

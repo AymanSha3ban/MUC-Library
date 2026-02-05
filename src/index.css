@@ -3,8 +3,15 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    background: radial-gradient(circle at top, #1e0a0a, #000000);
+    @apply transition-colors duration-700;
+  }
   body {
-    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    @apply bg-gray-50 text-gray-900 font-sans antialiased transition-colors duration-700;
+  }
+  .dark body {
+    @apply bg-transparent text-slate-100;
   }
 }
 

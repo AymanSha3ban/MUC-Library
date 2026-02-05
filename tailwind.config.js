@@ -4,6 +4,7 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
+    darkMode: 'class',
     theme: {
         extend: {
             colors: {
@@ -36,6 +37,7 @@ export default {
                 'fade-in': 'fadeIn 0.5s ease-out',
                 'slide-up': 'slideUp 0.5s ease-out',
                 'scale-in': 'scaleIn 0.3s ease-out',
+                'spin-slow-once': 'spin 1s linear 1',
             },
             keyframes: {
                 fadeIn: {

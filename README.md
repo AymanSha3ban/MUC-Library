@@ -13,6 +13,12 @@ A comprehensive, full-stack digital library system designed for MUC University, 
 - **Cinematic Experience:** 3D interactive book animations using **React Three Fiber**.
 - **Modern Design:** Glassmorphism effects, rich gradients, and smooth transitions powered by **Framer Motion**.
 - **Responsive Layout:** Fully optimized for desktop, tablet, and mobile devices.
+- **Dark Mode:** System-wide dark mode support with a toggle for comfortable viewing in low-light environments.
+
+### 👤 User Profile Management
+- **Personalization:** Users can update their display name and phone number.
+- **Image Cropping:** Upload and crop profile pictures with `react-easy-crop` for the perfect avatar.
+- **Real-time Updates:** Changes are reflected immediately across the application.
 
 ### 🔐 Secure Authentication
 - **University Verification:** Exclusive access for `@muc.edu.eg` email addresses.
@@ -24,7 +30,7 @@ A comprehensive, full-stack digital library system designed for MUC University, 
 ### 🛠️ Library Management
 - **Admin Dashboard:** Powerful interface for adding, editing, and categorizing books.
 - **Cloud Storage:** Secure hosting of PDF files and cover images via **Supabase Storage**.
-- **Format Support:** Handles Digital (PDF), Physical, and External (Paid) book formats.
+- **Format Support:** Handles Digital (PDF), Physical (with optional cover images), and External (Paid) book formats.
 
 ### 👥 Meet the Developers
 - **Professional Credits:** A dedicated page showcasing the development team.
@@ -38,6 +44,8 @@ A comprehensive, full-stack digital library system designed for MUC University, 
     - [Framer Motion](https://www.framer.com/motion/)
     - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
     - [Lucide React](https://lucide.dev/)
+    - [React Easy Crop](https://www.npmjs.com/package/react-easy-crop)
+    - [SweetAlert2](https://sweetalert2.github.io/)
 
 - **Backend:**
     - [Supabase](https://supabase.com/) (PostgreSQL Database, Auth, Storage, Edge Functions)
