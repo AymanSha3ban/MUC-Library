@@ -72,7 +72,7 @@ const AboutDevelopers = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
-                        {['Dr. Hassan Ibrahim', 'Dr. Seham Muawad', 'Eng. Yasmin Abdelnaby', 'Prof Dr : Mohamed Abdelsalam'].map((name, index) => (
+                        {['Prof Dr : Mohamed Abdelsalam', 'Dr. Hassan Ibrahim', 'Dr. Seham Muawad', 'Eng. Yasmin Abdelnaby'].map((name, index) => (
                             <motion.div
                                 key={name}
                                 initial={{ opacity: 0, y: 10 }}
